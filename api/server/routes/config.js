@@ -141,6 +141,19 @@ function buildCloudFrontStartupConfig() {
   };
 }
 
+function buildPaymentsStartupConfig(appConfig) {
+  const payments = appConfig?.payments;
+  if (!payments?.enabled) {
+    return undefined;
+  }
+
+  return {
+    enabled: true,
+    defaultProvider: payments.defaultProvider ?? 'alipay',
+    providers: { alipay: { enabled: Boolean(payments.alipay?.enabled) } },
+  };
+}
+
 router.get('/', async function (req, res) {
   try {
     const sharedPayload = buildSharedPayload();
@@ -179,6 +192,7 @@ router.get('/', async function (req, res) {
     });
 
     const balanceConfig = getBalanceConfig(appConfig);
+    const payments = buildPaymentsStartupConfig(appConfig);
 
     /** @type {TStartupConfig} */
     const payload = {
@@ -188,6 +202,7 @@ router.get('/', async function (req, res) {
       turnstile: appConfig?.turnstileConfig,
       modelSpecs: sanitizeModelSpecs(appConfig?.modelSpecs),
       balance: balanceConfig,
+      ...(payments ? { payments } : {}),
       bundlerURL: process.env.SANDPACK_BUNDLER_URL,
       staticBundlerURL: process.env.SANDPACK_STATIC_BUNDLER_URL,
       sharePointFilePickerEnabled,

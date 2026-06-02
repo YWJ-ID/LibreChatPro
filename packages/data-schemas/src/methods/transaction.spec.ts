@@ -488,6 +488,7 @@ describe('Transactions Config Tests', () => {
     expect(result?.balance).toBeLessThan(initialBalance);
     const transactions = await Transaction.find({ user: userId });
     expect(transactions).toHaveLength(1);
+    expect(result?.transactionId?.toString()).toBe(transactions[0]._id.toString());
     expect(transactions[0].rawAmount).toBe(-100);
   });
 

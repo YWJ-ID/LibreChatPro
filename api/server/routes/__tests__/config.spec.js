@@ -382,6 +382,39 @@ describe('GET /api/config', () => {
       expect(response.body.conversationImportMaxFileSize).toBe(5000000);
     });
 
+    it('should include sanitized payment startup config without Alipay secrets', async () => {
+      mockGetAppConfig.mockResolvedValue({
+        ...baseAppConfig,
+        payments: {
+          enabled: true,
+          defaultProvider: 'alipay',
+          alipay: {
+            enabled: true,
+            appId: 'app-id',
+            gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+            privateKeyPath: 'private-key.pem',
+            alipayPublicKey: 'public-key',
+            sellerId: 'seller-id',
+            notifyUrl: 'https://example.com/api/payments/alipay/notify',
+            returnUrl: 'https://example.com/payment/return',
+            signType: 'RSA2',
+          },
+        },
+      });
+      const app = createApp(mockUser);
+
+      const response = await request(app).get('/api/config');
+
+      expect(response.body.payments).toEqual({
+        enabled: true,
+        defaultProvider: 'alipay',
+        providers: { alipay: { enabled: true } },
+      });
+      expect(JSON.stringify(response.body.payments)).not.toContain('private-key.pem');
+      expect(JSON.stringify(response.body.payments)).not.toContain('public-key');
+      expect(JSON.stringify(response.body.payments)).not.toContain('app-id');
+    });
+
     it('should merge per-user balance override into config', async () => {
       mockGetAppConfig.mockResolvedValue({
         ...baseAppConfig,

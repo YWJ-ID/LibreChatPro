@@ -59,6 +59,7 @@ export interface TransactionResult {
   rate: number;
   user: string;
   balance: number;
+  transactionId: Types.ObjectId;
   prompt?: number;
   completion?: number;
   credits?: number;
@@ -325,6 +326,7 @@ export function createTransactionMethods(
       rate: transaction.rate as number,
       user: transaction.user.toString() as string,
       balance: balanceResponse.tokenCredits,
+      transactionId: transaction._id as Types.ObjectId,
       [transaction.tokenType as string]: incrementValue,
     } as TransactionResult;
   }
@@ -364,6 +366,7 @@ export function createTransactionMethods(
       rate: transaction.rate as number,
       user: transaction.user.toString() as string,
       balance: balanceResponse.tokenCredits,
+      transactionId: transaction._id as Types.ObjectId,
       [transaction.tokenType as string]: incrementValue,
     } as TransactionResult;
   }
