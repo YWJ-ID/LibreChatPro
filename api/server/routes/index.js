@@ -11,6 +11,7 @@ const endpoints = require('./endpoints');
 const staticRoute = require('./static');
 const messages = require('./messages');
 const memories = require('./memories');
+const payments = require('./payments');
 const presets = require('./presets');
 const prompts = require('./prompts');
 const skills = require('./skills');
@@ -60,6 +61,7 @@ module.exports = {
   skills,
   actions,
   presets,
+  payments,
   balance,
   messages,
   memories,
