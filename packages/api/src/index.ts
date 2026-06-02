@@ -39,6 +39,8 @@ export * from './modelSpecs';
 export * from './agents';
 /* Prompts */
 export * from './prompts';
+/* Payments */
+export * from './payments';
 /* Skills */
 export * from './skills';
 /* Endpoints */
