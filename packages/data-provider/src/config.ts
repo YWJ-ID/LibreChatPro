@@ -1039,6 +1039,12 @@ export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
 export type TBalanceConfig = z.infer<typeof balanceSchema>;
 export type TTransactionsConfig = z.infer<typeof transactionsSchema>;
 
+export type TStartupPaymentsConfig = {
+  enabled: boolean;
+  defaultProvider: 'alipay';
+  providers: { alipay: { enabled: boolean } };
+};
+
 export const turnstileOptionsSchema = z
   .object({
     language: z.string().default('auto'),
@@ -1063,6 +1069,7 @@ export type TStartupConfig = {
   turnstile?: TTurnstileConfig;
   balance?: TBalanceConfig;
   transactions?: TTransactionsConfig;
+  payments?: TStartupPaymentsConfig;
   discordLoginEnabled: boolean;
   facebookLoginEnabled: boolean;
   githubLoginEnabled: boolean;
@@ -1342,6 +1349,43 @@ export type SummarizationConfig = z.infer<typeof summarizationConfigSchema>;
 
 const customEndpointsSchema = z.array(endpointSchema.partial()).optional();
 
+const cnyAmountSchema = z.string().regex(/^\d+(\.\d{2})$/);
+
+const paymentPackageSchema = z.object({
+  id: z.string().min(1),
+  amountCny: cnyAmountSchema,
+  credits: z.number().int().positive(),
+  label: z.string().optional(),
+});
+
+export const paymentsSchema = z.object({
+  enabled: z.boolean().optional().default(false),
+  defaultProvider: z.literal('alipay').optional().default('alipay'),
+  packages: z.array(paymentPackageSchema).optional(),
+  custom: z
+    .object({
+      minCny: cnyAmountSchema,
+      maxCny: cnyAmountSchema,
+      creditsPerCny: z.number().int().positive(),
+    })
+    .optional(),
+  alipay: z
+    .object({
+      enabled: z.boolean().optional().default(false),
+      appId: z.string().min(1).optional(),
+      gateway: z.string().min(1).optional(),
+      privateKeyPath: z.string().min(1).optional(),
+      alipayPublicKey: z.string().min(1).optional(),
+      sellerId: z.string().min(1).optional(),
+      notifyUrl: z.string().min(1).optional(),
+      returnUrl: z.string().min(1).optional(),
+      signType: z.literal('RSA2').optional().default('RSA2'),
+    })
+    .optional(),
+});
+
+export type TPaymentsConfig = z.infer<typeof paymentsSchema>;
+
 export const configSchema = z.object({
   version: z.string(),
   cache: z.boolean().default(true),
@@ -1379,6 +1423,7 @@ export const configSchema = z.object({
     .default({ socialLogins: defaultSocialLogins }),
   balance: balanceSchema.optional(),
   transactions: transactionsSchema.optional(),
+  payments: paymentsSchema.optional(),
   speech: z
     .object({
       tts: ttsSchema.optional(),

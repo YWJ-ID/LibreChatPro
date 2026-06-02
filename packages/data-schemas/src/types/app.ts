@@ -86,6 +86,8 @@ export interface AppConfig {
   balance?: Partial<TCustomConfig['balance']>;
   /** Transactions configuration */
   transactions?: TCustomConfig['transactions'];
+  /** Payments configuration */
+  payments?: TCustomConfig['payments'];
   /** Speech configuration */
   speech?: TCustomConfig['speech'];
   /** MCP server configuration */

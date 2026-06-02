@@ -19,6 +19,34 @@ const endpointsConfig: TEndpointsConfig = {
   Gemini: { type: EModelEndpoint.custom, userProvide: false, order: 9999 },
 };
 
+describe('payments config schema', () => {
+  it('accepts official Alipay computer website payment settings', () => {
+    const result = configSchema.parse({
+      version: '1.2.1',
+      payments: {
+        enabled: true,
+        defaultProvider: 'alipay',
+        packages: [{ id: 'cny_10', amountCny: '10.00', credits: 1000000 }],
+        custom: { minCny: '1.00', maxCny: '5000.00', creditsPerCny: 100000 },
+        alipay: {
+          enabled: true,
+          appId: '${ALIPAY_APP_ID}',
+          gateway: '${ALIPAY_GATEWAY}',
+          privateKeyPath: '${ALIPAY_PRIVATE_KEY_PATH}',
+          alipayPublicKey: '${ALIPAY_PUBLIC_KEY}',
+          sellerId: '${ALIPAY_SELLER_ID}',
+          notifyUrl: '${ALIPAY_NOTIFY_URL}',
+          returnUrl: '${ALIPAY_RETURN_URL}',
+          signType: 'RSA2',
+        },
+      },
+    });
+
+    expect(result.payments?.defaultProvider).toBe('alipay');
+    expect(result.payments?.packages?.[0].credits).toBe(1000000);
+  });
+});
+
 describe('excludedKeys', () => {
   it.each(['_id', 'user', 'conversationId', '__v'])('excludes system field "%s"', (field) => {
     expect(excludedKeys.has(field)).toBe(true);
