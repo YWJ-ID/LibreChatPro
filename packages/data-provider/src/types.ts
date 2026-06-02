@@ -691,6 +691,51 @@ export type TBalanceResponse = {
   refillAmount?: number;
 };
 
+export type TPaymentProvider = 'alipay';
+
+export type TPaymentOrderStatus = 'pending' | 'paid' | 'credited' | 'closed' | 'failed';
+
+export type TPaymentPackage = {
+  id: string;
+  amountCny: string;
+  credits: number;
+  label?: string;
+};
+
+export type TPaymentPackagesResponse = {
+  packages: TPaymentPackage[];
+  custom: {
+    minCny: string;
+    maxCny: string;
+    creditsPerCny: number;
+  };
+  defaultProvider: TPaymentProvider;
+  providers: Partial<Record<TPaymentProvider, { enabled: boolean }>>;
+};
+
+export type TPaymentOrder = {
+  _id: string;
+  provider: TPaymentProvider;
+  outTradeNo: string;
+  amountCny: number;
+  credits: number;
+  status: TPaymentOrderStatus;
+  createdAt: string;
+  updatedAt: string;
+  paidAt?: string;
+  creditedAt?: string;
+};
+
+export type TCreatePaymentOrderRequest =
+  | { packageId: string; amountCny?: never }
+  | { amountCny: string; packageId?: never };
+
+export type TCreatePaymentOrderResponse = {
+  orderId: string;
+  outTradeNo: string;
+  paymentForm: string;
+};
+
 /* -------------------------------------------------------------------------- */
 /* Skill UI extensions (not yet persisted — phase 2 backend will fill these)  */
 /* -------------------------------------------------------------------------- */

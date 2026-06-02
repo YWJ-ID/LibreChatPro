@@ -11,6 +11,8 @@ export enum QueryKeys {
   name = 'name', // user key name
   models = 'models',
   balance = 'balance',
+  paymentPackages = 'paymentPackages',
+  paymentOrder = 'paymentOrder',
   endpoints = 'endpoints',
   presets = 'presets',
   searchResults = 'searchResults',
@@ -112,6 +114,7 @@ export enum MutationKeys {
   enableTwoFactor = 'enableTwoFactor',
   verifyTwoFactor = 'verifyTwoFactor',
   updateMemoryPreferences = 'updateMemoryPreferences',
+  createPaymentOrder = 'createPaymentOrder',
   /* Skill mutations from the original UI PR — tree/node operations are
    * phase 2 and currently stubbed in the data-service layer. */
   createSkillNode = 'createSkillNode',

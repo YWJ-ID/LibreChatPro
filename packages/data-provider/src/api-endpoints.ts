@@ -44,6 +44,17 @@ export const user = () => `${BASE_URL}/api/user`;
 
 export const balance = () => `${BASE_URL}/api/balance`;
 
+const paymentsRoot = `${BASE_URL}/api/payments`;
+
+export const paymentPackages = () => `${paymentsRoot}/packages`;
+
+export const paymentOrders = () => `${paymentsRoot}/orders`;
+
+export const paymentOrderById = (orderId: string) =>
+  `${paymentOrders()}/${encodeURIComponent(orderId)}`;
+
+export const paymentAlipayNotify = () => `${paymentsRoot}/alipay/notify`;
+
 export const userPlugins = () => `${BASE_URL}/api/user/plugins`;
 
 export const deleteUser = () => `${BASE_URL}/api/user/delete`;

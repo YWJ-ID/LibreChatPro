@@ -145,6 +145,20 @@ export function getUserBalance(): Promise<t.TBalanceResponse> {
   return request.get(endpoints.balance());
 }
 
+export function getPaymentPackages(): Promise<t.TPaymentPackagesResponse> {
+  return request.get(endpoints.paymentPackages());
+}
+
+export function createPaymentOrder(
+  payload: t.TCreatePaymentOrderRequest,
+): Promise<t.TCreatePaymentOrderResponse> {
+  return request.post(endpoints.paymentOrders(), payload);
+}
+
+export function getPaymentOrder(orderId: string): Promise<t.TPaymentOrder> {
+  return request.get(endpoints.paymentOrderById(orderId));
+}
+
 export const updateTokenCount = (text: string) => {
   return request.post(endpoints.tokenizer(), { arg: text });
 };
