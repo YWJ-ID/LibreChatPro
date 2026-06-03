@@ -146,3 +146,41 @@ describe('AppService assistants config', () => {
     );
   });
 });
+
+describe('AppService payments config', () => {
+  it('preserves payments config for startup config consumers', async () => {
+    const config = {
+      payments: {
+        enabled: true,
+        defaultProvider: 'alipay',
+        packages: [
+          {
+            id: 'cny_10',
+            amountCny: '10.00',
+            credits: 1000000,
+          },
+        ],
+        custom: {
+          minCny: '1.00',
+          maxCny: '5000.00',
+          creditsPerCny: 100000,
+        },
+        alipay: {
+          enabled: true,
+          appId: 'app-id',
+          gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+          privateKeyPath: 'private-key.pem',
+          alipayPublicKey: 'public-key',
+          sellerId: 'seller-id',
+          notifyUrl: 'https://example.com/api/payments/alipay/notify',
+          returnUrl: 'https://example.com/payment/return',
+          signType: 'RSA2',
+        },
+      },
+    } as DeepPartial<TCustomConfig>;
+
+    const result = await AppService({ config });
+
+    expect(result.payments).toEqual(config.payments);
+  });
+});

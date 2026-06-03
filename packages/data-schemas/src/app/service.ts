@@ -110,6 +110,7 @@ export const AppService = async (params?: {
   const interfaceConfig = await loadDefaultInterface({ config, configDefaults });
   const turnstileConfig = loadTurnstileConfig(config, configDefaults);
   const speech = config.speech;
+  const payments = config.payments;
 
   const defaultConfig = {
     ocr,
@@ -118,6 +119,7 @@ export const AppService = async (params?: {
     memory,
     speech,
     balance,
+    payments,
     actions,
     webSearch,
     mcpSettings,

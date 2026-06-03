@@ -203,6 +203,70 @@ describe('createAlipayProvider', () => {
     expect(sdk.pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', expect.any(Object));
   });
 
+  it('resolves Alipay runtime config from environment placeholders', async () => {
+    const originalEnv = { ...process.env };
+    process.env.ALIPAY_APP_ID = 'env-app-id';
+    process.env.ALIPAY_GATEWAY = 'https://env-gateway.test/gateway.do';
+    process.env.ALIPAY_PRIVATE_KEY_PATH = 'env-private-key.pem';
+    process.env.ALIPAY_PUBLIC_KEY = 'env-public-key';
+    process.env.ALIPAY_NOTIFY_URL = 'https://env.example.com/api/payments/alipay/notify';
+    process.env.ALIPAY_RETURN_URL = 'https://env.example.com/payment/return';
+    process.env.ALIPAY_SELLER_ID = 'env-seller-id';
+
+    const readFile = jest.fn((path: string) => `${path}-contents`);
+    const sdk = {
+      pageExecute: jest.fn(() => '<form>sdk</form>'),
+      checkNotifySign: jest.fn(() => true),
+      exec: jest.fn(async () => ({ trade_status: 'TRADE_SUCCESS' })),
+    };
+    const createClient = jest.fn(() => sdk);
+    const appConfig = {
+      payments: {
+        alipay: {
+          enabled: true,
+          appId: '${ALIPAY_APP_ID}',
+          gateway: '${ALIPAY_GATEWAY}',
+          privateKeyPath: '${ALIPAY_PRIVATE_KEY_PATH}',
+          alipayPublicKey: '${ALIPAY_PUBLIC_KEY}',
+          notifyUrl: '${ALIPAY_NOTIFY_URL}',
+          returnUrl: '${ALIPAY_RETURN_URL}',
+          sellerId: '${ALIPAY_SELLER_ID}',
+          signType: 'RSA2',
+        },
+      },
+    } as AppConfig;
+
+    try {
+      const provider = createAlipayProviderFromConfig(appConfig, { createClient, readFile });
+      await provider?.createPaymentForm({
+        outTradeNo: 'LC202605260007',
+        amountCny: '10.00',
+        subject: 'LibreChat Credits 1000000',
+      });
+
+      expect(readFile).toHaveBeenCalledWith('env-private-key.pem', 'utf8');
+      expect(createClient).toHaveBeenCalledWith({
+        appId: 'env-app-id',
+        gateway: 'https://env-gateway.test/gateway.do',
+        privateKey: 'env-private-key.pem-contents',
+        alipayPublicKey: 'env-public-key',
+        signType: 'RSA2',
+      });
+      expect(sdk.pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', {
+        notifyUrl: 'https://env.example.com/api/payments/alipay/notify',
+        returnUrl: 'https://env.example.com/payment/return',
+        bizContent: {
+          out_trade_no: 'LC202605260007',
+          total_amount: '10.00',
+          subject: 'LibreChat Credits 1000000',
+          product_code: 'FAST_INSTANT_TRADE_PAY',
+        },
+      });
+    } finally {
+      process.env = originalEnv;
+    }
+  });
+
   it('returns null when Alipay runtime config is incomplete', () => {
     const readFile = jest.fn();
     const createClient = jest.fn();

@@ -1,5 +1,6 @@
 import { AlipaySdk } from 'alipay-sdk';
 import { readFileSync } from 'node:fs';
+import { extractEnvVariable } from 'librechat-data-provider';
 import type { AlipaySdkCommonResult, AlipaySdkConfig } from 'alipay-sdk';
 import type { AppConfig } from '@librechat/data-schemas';
 import type { PaymentProvider } from './providers';
@@ -65,13 +66,13 @@ function getConfiguredAlipay(appConfig?: AppConfig): RequiredAlipayConfig | null
   }
 
   return {
-    appId: alipay.appId,
-    gateway: alipay.gateway,
-    privateKeyPath: alipay.privateKeyPath,
-    alipayPublicKey: alipay.alipayPublicKey,
-    notifyUrl: alipay.notifyUrl,
-    returnUrl: alipay.returnUrl,
-    sellerId: alipay.sellerId,
+    appId: extractEnvVariable(alipay.appId),
+    gateway: extractEnvVariable(alipay.gateway),
+    privateKeyPath: extractEnvVariable(alipay.privateKeyPath),
+    alipayPublicKey: extractEnvVariable(alipay.alipayPublicKey),
+    notifyUrl: extractEnvVariable(alipay.notifyUrl),
+    returnUrl: extractEnvVariable(alipay.returnUrl),
+    sellerId: extractEnvVariable(alipay.sellerId),
     signType: alipay.signType,
   };
 }
