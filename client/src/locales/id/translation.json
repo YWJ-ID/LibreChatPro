@@ -269,5 +269,12 @@
   "com_ui_upload": "Unggah",
   "com_ui_upload_error": "Ada kesalahan saat mengunggah file Anda",
   "com_ui_upload_success": "Berhasil mengunggah file",
-  "com_user_message": "Kamu"
+  "com_user_message": "Kamu",
+  "com_nav_balance_transactions_description": "Recent model usage charged to your balance.",
+  "com_nav_balance_transactions_empty": "No usage charges yet.",
+  "com_nav_balance_transactions_load_more": "Load more",
+  "com_nav_balance_transactions_loading": "Loading usage charges...",
+  "com_nav_balance_transactions_title": "Recent usage",
+  "com_nav_balance_transactions_unknown_model": "Unknown model",
+  "com_nav_setting_usage": "Usage"
 }

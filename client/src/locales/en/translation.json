@@ -437,6 +437,12 @@
   "com_nav_balance_recharge": "Recharge credits",
   "com_nav_balance_recharge_credits": "{{credits}} credits",
   "com_nav_balance_recharge_submit": "Recharge",
+  "com_nav_balance_transactions_description": "Recent model usage charged to your balance.",
+  "com_nav_balance_transactions_empty": "No usage charges yet.",
+  "com_nav_balance_transactions_load_more": "Load more",
+  "com_nav_balance_transactions_loading": "Loading usage charges...",
+  "com_nav_balance_transactions_title": "Recent usage",
+  "com_nav_balance_transactions_unknown_model": "Unknown model",
   "com_nav_balance_custom_amount": "Custom amount (CNY)",
   "com_nav_balance_refill_amount": "Refill Amount:",
   "com_nav_balance_second": "second",
@@ -1730,5 +1736,6 @@
   "com_ui_zoom_in": "Zoom in",
   "com_ui_zoom_level": "Zoom level",
   "com_ui_zoom_out": "Zoom out",
-  "com_user_message": "You"
+  "com_user_message": "You",
+  "com_nav_setting_usage": "Usage"
 }

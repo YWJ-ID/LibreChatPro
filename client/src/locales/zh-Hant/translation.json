@@ -874,5 +874,12 @@
   "com_ui_weekend_morning": "週末愉快",
   "com_ui_yes": "是",
   "com_ui_zoom": "縮放",
-  "com_user_message": "您"
+  "com_user_message": "您",
+  "com_nav_balance_transactions_description": "最近從您的餘額中扣除的模型使用記錄。",
+  "com_nav_balance_transactions_empty": "暫無使用扣費記錄。",
+  "com_nav_balance_transactions_load_more": "載入更多",
+  "com_nav_balance_transactions_loading": "正在載入使用扣費記錄...",
+  "com_nav_balance_transactions_title": "最近使用記錄",
+  "com_nav_balance_transactions_unknown_model": "未知模型",
+  "com_nav_setting_usage": "消耗記錄"
 }

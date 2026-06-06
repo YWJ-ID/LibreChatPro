@@ -833,5 +833,12 @@
   "com_ui_x_selected": "{{0}} seleccionats",
   "com_ui_yes": "Sí",
   "com_ui_zoom": "Zoom",
-  "com_user_message": "Tu"
+  "com_user_message": "Tu",
+  "com_nav_balance_transactions_description": "Recent model usage charged to your balance.",
+  "com_nav_balance_transactions_empty": "No usage charges yet.",
+  "com_nav_balance_transactions_load_more": "Load more",
+  "com_nav_balance_transactions_loading": "Loading usage charges...",
+  "com_nav_balance_transactions_title": "Recent usage",
+  "com_nav_balance_transactions_unknown_model": "Unknown model",
+  "com_nav_setting_usage": "Usage"
 }

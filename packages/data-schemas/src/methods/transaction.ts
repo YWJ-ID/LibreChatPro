@@ -1,5 +1,5 @@
 import logger from '~/config/winston';
-import type { FilterQuery, Model, Types } from 'mongoose';
+import type { FilterQuery, Model, QueryOptions, SortOrder, Types } from 'mongoose';
 import type { IBalance, IBalanceUpdate, TransactionData } from '~/types';
 import type { ITransaction } from '~/schema/transaction';
 
@@ -34,6 +34,13 @@ interface InternalTxDoc {
   inputTokens?: number;
   writeTokens?: number;
   readTokens?: number;
+}
+
+export interface GetTransactionsOptions {
+  filter: FilterQuery<ITransaction>;
+  limit?: number;
+  offset?: number;
+  sort?: Record<string, SortOrder>;
 }
 
 /** Input data for creating a transaction */
@@ -374,10 +381,33 @@ export function createTransactionMethods(
   /**
    * Queries and retrieves transactions based on a given filter.
    */
-  async function getTransactions(filter: FilterQuery<ITransaction>) {
+  async function getTransactions(
+    input: FilterQuery<ITransaction> | GetTransactionsOptions,
+  ): Promise<ITransaction[] | { transactions: ITransaction[]; total: number }> {
     try {
-      const Transaction = mongoose.models.Transaction;
-      return await Transaction.find(filter).lean();
+      const Transaction = mongoose.models.Transaction as Model<ITransaction>;
+      if (!('filter' in input)) {
+        return await Transaction.find(input).lean<ITransaction[]>();
+      }
+
+      const { filter, limit, offset, sort } = input;
+      const queryOptions: QueryOptions<ITransaction> = {};
+      if (sort) {
+        queryOptions.sort = sort;
+      }
+      if (limit != null) {
+        queryOptions.limit = limit;
+      }
+      if (offset != null) {
+        queryOptions.skip = offset;
+      }
+
+      const [transactions, total] = await Promise.all([
+        Transaction.find(filter, null, queryOptions).lean<ITransaction[]>(),
+        Transaction.countDocuments(filter),
+      ]);
+
+      return { transactions, total };
     } catch (error) {
       logger.error('Error querying transactions:', error);
       throw error;

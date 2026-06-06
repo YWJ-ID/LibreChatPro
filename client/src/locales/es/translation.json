@@ -801,5 +801,12 @@
   "com_ui_zoom_in": "Menos Zoom",
   "com_ui_zoom_level": "Nivelar Zoom",
   "com_ui_zoom_out": "Mas Zoom",
-  "com_user_message": "Usted"
+  "com_user_message": "Usted",
+  "com_nav_balance_transactions_description": "Recent model usage charged to your balance.",
+  "com_nav_balance_transactions_empty": "No usage charges yet.",
+  "com_nav_balance_transactions_load_more": "Load more",
+  "com_nav_balance_transactions_loading": "Loading usage charges...",
+  "com_nav_balance_transactions_title": "Recent usage",
+  "com_nav_balance_transactions_unknown_model": "Unknown model",
+  "com_nav_setting_usage": "Usage"
 }

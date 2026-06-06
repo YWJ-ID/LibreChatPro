@@ -145,6 +145,12 @@ export function getUserBalance(): Promise<t.TBalanceResponse> {
   return request.get(endpoints.balance());
 }
 
+export function getUserBalanceTransactions(
+  params: t.TBalanceTransactionsQueryParams = {},
+): Promise<t.TBalanceTransactionsResponse> {
+  return request.get(endpoints.balanceTransactions(params));
+}
+
 export function getPaymentPackages(): Promise<t.TPaymentPackagesResponse> {
   return request.get(endpoints.paymentPackages());
 }

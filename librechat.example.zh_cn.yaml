@@ -1,0 +1,775 @@
+# 更多信息请参考配置指南：
+# https://www.librechat.ai/docs/configuration/librechat_yaml
+
+# 配置版本（必填）
+version: 1.3.11
+
+# 缓存设置：设置为 true 启用缓存
+cache: true
+
+# 文件存储配置
+# 所有文件类型使用单一策略（旧格式，仍然支持）
+# fileStrategy: "s3"
+
+# 细粒度文件存储策略（新格式 - 推荐）
+# 允许为不同类型的文件使用不同的存储策略
+# fileStrategy:
+#   avatar: "s3"        # 用户/智能体头像图片存储
+#   image: "firebase"   # 聊天中上传的图片存储
+#   document: "local"   # 文档上传存储（PDF、文本文件等）
+
+# 可用策略："local"、"s3"、"firebase"、"azure_blob"、"cloudfront"
+# 如果未指定，默认所有文件类型使用 "local"
+# 你可以根据需求混合搭配策略：
+# - 使用 S3 存储头像以实现全球快速访问
+# - 使用 Firebase 存储图片并自动优化
+# - 使用本地存储文档以保护隐私/合规
+# - 使用 CloudFront 进行 CDN 加速分发（需要 S3 + cloudfront 配置）
+
+# CloudFront CDN 配置（可选）
+# 当 fileStrategy: "cloudfront" 或 fileStrategies 包含 cloudfront 时使用
+# 需要：AWS_REGION、AWS_ACCESS_KEY_ID、AWS_SECRET_ACCESS_KEY、AWS_BUCKET_NAME
+# 对于签名 Cookie 和直接下载 URL：CLOUDFRONT_KEY_PAIR_ID、CLOUDFRONT_PRIVATE_KEY
+# cloudfront:
+#   domain: "https://cdn.example.com"       # CloudFront 域名（Cookie 推荐使用 CNAME）
+#   distributionId: "E1234ABCD"             # 如果 invalidateOnDelete 为 true 则必填
+#   invalidateOnDelete: false               # 删除文件时创建缓存无效
+#   imageSigning: "none"                    # "none"（公开）| "cookies"（签名 Cookie）
+#   # 当 imageSigning: "cookies" 时，API + CloudFront 必须共享父域名
+#   # Cookie 仅作用于内联资产路径：
+#   #   /i/... 私有上传/生成图片，用户作用域
+#   #   /a/... 租户可见头像，存在 tenantId 时为租户作用域
+#   # 下载、文档、上传和代码输出保持在 /i 和 /a 之外，
+#   # 使用后端授权的签名 URL 而非签名 Cookie
+#   #   API: api.example.com, CloudFront CNAME: cdn.example.com, cookieDomain: ".example.com"
+#   cookieDomain: ".example.com"            # "cookies" 必填 - 共享父域名
+#   cookieExpiry: 1800                      # Cookie 有效期（秒）（最大：604800 / 7 天，默认：1800 / 30 分钟）
+#   urlExpiry: 3600                         # 签名 CloudFront 下载 URL 有效期（秒）
+#   # 可选的多区域 S3/CloudFront 布局。默认：false
+#   # 启用后，新对象键将包含：
+#   #   /i/r/{storageRegion}/t/{tenantId}/images/{userId}/{file}   （私有内联图片）
+#   #   /a/r/{storageRegion}/t/{tenantId}/avatars/{userId}/{file}  （租户可见头像）
+#   #   /r/{storageRegion}/t/{tenantId}/{basePath}/{userId}/{file} （非内联文件）
+#   # 省略时 storageRegion 默认为 AWS_REGION，但仅在 includeRegionInPath 为 true 时影响新键
+#   # 现有文件不会自动移动
+#   # LibreChat 不配置 CloudFront 源站、Route53 或区域路由
+#   storageRegion: "us-east-2"
+#   includeRegionInPath: false
+#   # 直接下载的文件名/内容类型覆盖需要 CloudFront 缓存/源站
+#   # 请求策略转发并在 S3 上缓存 response-content-disposition 和
+#   # response-content-type 查询字符串
+#   # 推荐用于下载路径：附加 CloudFront 响应头策略
+#   # 包含 X-Content-Type-Options: nosniff 和 CSP default-src 'none'
+
+# 自定义界面配置
+interface:
+  customWelcome: 'Welcome to LibreChat! Enjoy your experience.'
+  # 启用/禁用文件搜索作为聊天区域选择（默认：true）
+  # 注意：此设置不会禁用智能体文件搜索能力
+  # 要禁用智能体能力，请查看智能体端点配置
+  fileSearch: true
+  # 隐私政策设置
+  privacyPolicy:
+    externalUrl: 'https://librechat.ai/privacy-policy'
+    openNewTab: true
+
+  # 服务条款
+  termsOfService:
+    externalUrl: 'https://librechat.ai/tos'
+    openNewTab: true
+    modalAcceptance: true
+    modalTitle: 'Terms of Service for LibreChat'
+    modalContent: |
+      # Terms and Conditions for LibreChat
+
+      *Effective Date: February 18, 2024*
+
+      Welcome to LibreChat, the informational website for the open-source AI chat platform, available at https://librechat.ai. These Terms of Service ("Terms") govern your use of our website and the services we offer. By accessing or using the Website, you agree to be bound by these Terms and our Privacy Policy, accessible at https://librechat.ai//privacy.
+
+      ## 1. Ownership
+
+      Upon purchasing a package from LibreChat, you are granted the right to download and use the code for accessing an admin panel for LibreChat. While you own the downloaded code, you are expressly prohibited from reselling, redistributing, or otherwise transferring the code to third parties without explicit permission from LibreChat.
+
+      ## 2. User Data
+
+      We collect personal data, such as your name, email address, and payment information, as described in our Privacy Policy. This information is collected to provide and improve our services, process transactions, and communicate with you.
+
+      ## 3. Non-Personal Data Collection
+
+      The Website uses cookies to enhance user experience, analyze site usage, and facilitate certain functionalities. By using the Website, you consent to the use of cookies in accordance with our Privacy Policy.
+
+      ## 4. Use of the Website
+
+      You agree to use the Website only for lawful purposes and in a manner that does not infringe the rights of, restrict, or inhibit anyone else's use and enjoyment of the Website. Prohibited behavior includes harassing or causing distress or inconvenience to any person, transmitting obscene or offensive content, or disrupting the normal flow of dialogue within the Website.
+
+      ## 5. Governing Law
+
+      These Terms shall be governed by and construed in accordance with the laws of the United States, without giving effect to any principles of conflicts of law.
+
+      ## 6. Changes to the Terms
+
+      We reserve the right to modify these Terms at any time. We will notify users of any changes by email. Your continued use of the Website after such changes have been notified will constitute your consent to such changes.
+
+      ## 7. Contact Information
+
+      If you have any questions about these Terms, please contact us at contact@librechat.ai.
+
+      By using the Website, you acknowledge that you have read these Terms of Service and agree to be bound by them.
+
+  modelSelect: true
+  parameters: true
+  presets: true
+  prompts:
+    use: true
+    create: true
+    share: false
+    public: false
+  bookmarks: true
+  multiConvo: true
+  agents:
+    use: true
+    create: true
+    share: false
+    public: false
+  peoplePicker:
+    users: true
+    groups: true
+    roles: true
+  marketplace:
+    use: false
+  fileCitations: true
+  # 远程智能体配置
+  # 控制具有外部 API 支持的远程智能体的用户权限
+  # remoteAgents:
+  #   use: false
+  #   create: false
+  #   share: false
+  #   public: false
+  # MCP 服务器配置示例
+  # mcpServers:
+    # 控制 MCP（模型上下文协议）服务器管理的用户权限
+    # - use: 允许用户使用已配置的 MCP 服务器
+    # - create: 允许用户创建和管理新的 MCP 服务器
+    # - share: 允许用户与其他用户共享 MCP 服务器
+    # - public: 允许用户公开共享 MCP 服务器（与所有人）
+
+    # 创建/编辑 MCP 服务器配置对话框配置示例
+    # trustCheckbox:
+    #   label:
+    #     en: 'I understand and I want to continue'
+    #     de: 'Ich verstehe und möchte fortfahren'
+    #     de-DE: 'Ich verstehe und möchte fortfahren' # 你可以缩小翻译范围到特定区域（如 de-DE 或 de-CH）
+    #   subLabel:
+    #     en: |
+    #       Librechat hasn't reviewed this MCP server. Attackers may attempt to steal your data or trick the model into taking unintended actions, including destroying data. <a href="https://google.de" target="_blank"><strong>Learn more.</strong></a>
+    #     de: |
+    #       LibreChat hat diesen MCP-Server nicht überprüft. Angreifer könnten versuchen, Ihre Daten zu stehlen oder das Modell zu unbeabsichtigten Aktionen zu verleiten, einschließlich der Zerstörung von Daten. <a href="https://google.de" target="_blank"><strong>Mehr erfahren.</strong></a>
+
+  # 临时聊天保留期限（小时）（默认：720，最小：1，最大：8760）
+  # temporaryChatRetention: 1
+  # 保留模式："all" 对所有数据类型应用过期，"temporary"（默认）仅对临时聊天
+  # 从 "all" 切换回 "temporary" 之前，从不应过期的非临时数据中删除保留截止时间：
+  # db.conversations.updateMany({ isTemporary: false, expiredAt: { $ne: null } }, { $unset: { expiredAt: 1 } })
+  # db.messages.updateMany({ isTemporary: false, expiredAt: { $ne: null } }, { $unset: { expiredAt: 1 } })
+  # MongoDB 不会自动删除被取代的索引。升级后，旧的 Meili 索引
+  # 如 "_meiliIndex_1_expiredAt_1" 可以在新的
+  # "_meiliIndex_1_isTemporary_1_expiredAt_1" 索引存在后从 conversations/messages 中删除
+  # retentionMode: "temporary"
+
+# Cloudflare Turnstile 示例（可选）
+#turnstile:
+#  siteKey: "your-site-key-here"
+#  options:
+#    language: "auto"    # "auto" 或 ISO 639-1 语言代码（如 en）
+#    size: "normal"      # 选项："normal"、"compact"、"flexible" 或 "invisible"
+
+# 注册对象结构示例（可选）
+registration:
+  socialLogins: ['github', 'google', 'discord', 'openid', 'facebook', 'apple', 'saml']
+  # allowedDomains:
+  # - "gmail.com"
+
+# 余额设置示例
+# balance:
+#   enabled: false
+#   startBalance: 20000
+#   autoRefillEnabled: false
+#   refillIntervalValue: 30
+#   refillIntervalUnit: 'days'
+#   refillAmount: 10000
+
+# 支付设置示例
+# 在配置好支付宝凭证、公共回调 URL 和服务器端私钥文件之前，请保持支付禁用。
+# 沙箱与生产环境由 ALIPAY_GATEWAY 及匹配的信宝应用凭证和密钥控制；不需要单独的模式。
+# payments:
+#   enabled: false
+#   defaultProvider: alipay
+#   packages:
+#     - id: cny_10
+#       amountCny: '10.00'
+#       credits: 1000000
+#     - id: cny_50
+#       amountCny: '50.00'
+#       credits: 5500000
+#     - id: cny_100
+#       amountCny: '100.00'
+#       credits: 12000000
+#     - id: cny_500
+#       amountCny: '500.00'
+#       credits: 65000000
+#   custom:
+#     minCny: '1.00'
+#     maxCny: '5000.00'
+#     creditsPerCny: 100000
+#   alipay:
+#     enabled: false
+#     appId: '${ALIPAY_APP_ID}'
+#     gateway: '${ALIPAY_GATEWAY}'
+#     privateKeyPath: '${ALIPAY_PRIVATE_KEY_PATH}'
+#     alipayPublicKey: '${ALIPAY_PUBLIC_KEY}'
+#     sellerId: '${ALIPAY_SELLER_ID}'
+#     notifyUrl: '${ALIPAY_NOTIFY_URL}'
+#     returnUrl: '${ALIPAY_RETURN_URL}'
+#     signType: RSA2
+
+# 交易设置示例
+# 控制是否将交易记录保存到数据库
+# 默认为 true（启用）
+#transactions:
+#  enabled: false
+# 注意：如果 balance.enabled 为 true，交易将始终启用
+# 无论此设置如何，以确保余额跟踪正常工作
+
+# speech:
+#   tts:
+#     openai:
+#       url: ''
+#       apiKey: '${TTS_API_KEY}'
+#       model: ''
+#       voices: ['']
+
+#
+#   stt:
+#     openai:
+#       url: ''
+#       apiKey: '${STT_API_KEY}'
+#       model: ''
+
+# rateLimits:
+#   fileUploads:
+#     ipMax: 100
+#     ipWindowInMinutes: 60  # 每个 IP 的文件上传速率限制窗口
+#     userMax: 50
+#     userWindowInMinutes: 60  # 每个用户的文件上传速率限制窗口
+#   conversationsImport:
+#     ipMax: 100
+#     ipWindowInMinutes: 60  # 每个 IP 的对话导入速率限制窗口
+#     userMax: 50
+#     userWindowInMinutes: 60  # 每个用户的对话导入速率限制窗口
+
+# 智能体操作域限制（OpenAPI 规范验证）
+# 安全：如果未配置，SSRF 目标将被阻止（localhost、私有 IP、.internal/.local TLD）。
+# 优先使用 `allowedAddresses` 允许内部目标 — 向
+# `allowedDomains` 添加私有 IP 会将该字段切换到严格白名单模式，并阻止未列出的所有
+# 公共目标。
+# 支持通配符：'*.example.com' 和协议/端口限制：'https://api.example.com:8443'
+actions:
+  allowedDomains:
+    - 'swapi.dev'
+    - 'librechat.ai'
+    - 'google.com'
+    # - 'http://10.225.26.25:7894'  # 带协议/端口的内部 IP（如需要请取消注释）
+  # `allowedAddresses` 是 SSRF 豁免列表，不是严格的白名单。
+  # 此处列出的主机名/IP + 端口对绕过该
+  # 私有/环回/链路本地服务的默认拒绝块。公共域继续正常工作
+  # — 在此处列出私有目标不会限制对其他任何内容的访问。
+  #
+  # 条目必须包含端口：`host:port`、`private.ip:port` 或 `[ipv6]:port`。
+  # 不要使用 URL、路径、CIDR 范围、裸主机/IP 或公共 IP 字面量。
+  # 公共 IP 字面量在配置加载时被拒绝（该字段限定为
+  # 私有 IP 空间；公共 IP 不是 SSRF 目标）。
+  #
+  # 关于主机名的注意：主机名条目信任该名称解析到的任何 IP
+  # 在列出的端口上。如果该名称的 DNS 被劫持或轮换到不同的
+  # 私有 IP，豁免将跟随。仅列出你控制 DNS 的主机名。
+  # 尽可能优先使用字面 IP。
+  # allowedAddresses:
+  #   - 'host.docker.internal:11434'
+  #   - '127.0.0.1:11434'
+  #   - '10.0.0.5:8080'
+
+# 自定义端点 baseURL 豁免列表
+# 安全：用户提供的 baseURL（`baseURL: 'user_provided'`）将根据
+# 与操作和 MCP 相同的 SSRF 块进行验证。如果你的用户合法指向私有
+# 服务（自托管 Ollama、内部 LLM 网关等），在此处列出这些主机名/IP
+# + 端口对，以便验证器允许它们通过。公共目标不受影响。
+#
+# 条目必须包含端口：`host:port`、`private.ip:port` 或 `[ipv6]:port`。
+# 不要使用 URL、路径、CIDR 范围、裸主机/IP 或公共 IP 字面量。
+# 主机名条目信任它们解析到的任何 IP 在列出的端口上 — 仅
+# 列出你控制 DNS 的名称。
+# endpoints:
+#   allowedAddresses:
+#     - 'localhost:11434'
+#     - '127.0.0.1:11434'
+#     - 'ollama:11434'
+#     - '10.0.0.5:8080'
+
+# MCP 服务器远程传输域限制（SSE、WebSocket、HTTP）
+# 安全：如果未配置，SSRF 目标将被阻止（localhost、私有 IP、.internal/.local TLD）。
+# 优先使用 `allowedAddresses` 允许内部目标 — 向
+# `allowedDomains` 添加私有主机将该字段切换到严格白名单模式，并阻止未列出的所有
+# 公共目标。
+# 支持通配符：'*.example.com' 匹配 'api.example.com'、'staging.example.com' 等。
+# 支持协议/端口限制：'https://api.example.com:8443' 限制为特定协议/端口。
+# mcpSettings:
+#   allowedDomains:
+#     - 'host.docker.internal'    # Docker 主机访问（Docker 设置必需）
+#     - 'localhost'               # 本地开发
+#     - '*.example.com'           # 通配符子域
+#     - 'https://secure.api.com'  # 协议限制
+#     - 'http://internal:8080'    # 协议和端口限制
+#   # allowedAddresses 是 SSRF 豁免列表（仅限私有 IP 空间）。
+#   # 此处列出的主机名/IP + 端口对绕过该
+#   # 私有服务的默认拒绝块；公共目标保持可访问。当你
+#   # 需要默认 SSRF 保护和特定内部 MCP 服务器时很有用。条目必须
+#   # 包含端口（`host:port`、`private.ip:port` 或 `[ipv6]:port`），并且必须
+#   # 不是 URL、路径、CIDR 范围、裸主机/IP 或公共 IP 字面量。
+#   # 主机名条目信任它们解析到的任何 IP 在列出的端口上。
+#   allowedAddresses:
+#     - 'host.docker.internal:8080'
+#     - '127.0.0.1:8080'
+
+# MCP 服务器对象结构示例
+# mcpServers:
+#   everything:
+#     # type: sse # type 可以省略
+#     url: http://localhost:3001/sse
+#     timeout: 60000  # 此服务器的 1 分钟超时，这是 MCP 服务器的默认超时。
+#   puppeteer:
+#     type: stdio
+#     command: npx
+#     args:
+#       - -y
+#       - "@modelcontextprotocol/server-puppeteer"
+#     timeout: 300000  # 此服务器的 5 分钟超时
+#   filesystem:
+#     # type: stdio
+#     command: npx
+#     args:
+#       - -y
+#       - "@modelcontextprotocol/server-filesystem"
+#       - /home/user/LibreChat/
+#     iconPath: /home/user/LibreChat/client/public/assets/logo.svg
+#   mcp-obsidian:
+#     command: npx
+#     args:
+#       - -y
+#       - "mcp-obsidian"
+#       - /path/to/obsidian/vault
+
+# 自定义端点定义
+endpoints:
+  # assistants:
+  #   disableBuilder: false # 设置为 `true` 禁用智能体构建器界面
+  #   pollIntervalMs: 3000  # 检查智能体更新的轮询间隔
+  #   timeoutMs: 180000  # 智能体操作的超时时间
+  #   # 只能选择其一，`supportedIds` 或 `excludedIds`
+  #   supportedIds: ["asst_supportedAssistantId1", "asst_supportedAssistantId2"]
+  #   # excludedIds: ["asst_excludedAssistantId"]
+  #   # 仅显示用户创建的或外部创建的智能体（例如在智能体游乐场中）
+  #   # privateAssistants: false # 不适用于 `supportedIds` 或 `excludedIds`
+  #   # （可选）支持检索的模型，将默认为最新已知支持该功能的 OpenAI 模型
+  #   retrievalModels: ["gpt-4-turbo-preview"]
+  #   # （可选）所有用户可用的智能体能力。省略你想排除的能力。默认为以下列表。
+  #   capabilities: ["code_interpreter", "retrieval", "actions", "tools", "image_vision"]
+  # agents:
+  #   # （可选）智能体的默认递归深度，默认为 25
+  #   recursionLimit: 50
+  #   # （可选）智能体的最大递归深度，默认为 25
+  #   maxRecursionLimit: 100
+  #   # （可选）禁用智能体的构建器界面
+  #   disableBuilder: false
+  #   # （可选）智能体响应中包含的最大总引用数，默认为 30
+  #   maxCitations: 30
+  #   # （可选）智能体响应中每个文件包含的最大引用数，默认为 7
+  #   maxCitationsPerFile: 7
+  #   # （可选）包含在响应中的源的最小相关性分数，默认为 0.45（45% 相关性阈值）
+  #   # 设置为 0.0 显示所有源（不过滤），或设置为更高如 0.7 进行更严格的过滤
+  #   minRelevanceScore: 0.45
+  #   # （可选）所有用户可用的智能体能力。省略你想排除的能力。默认为以下列表。
+  #   capabilities: ["deferred_tools", "execute_code", "file_search", "actions", "tools"]
+
+  # 带 Vertex AI 支持的 Anthropic 端点配置
+  # 使用此配置通过 Google Cloud Vertex AI 运行 Anthropic Claude 模型
+  # anthropic:
+  #   # （可选）流速率限制（毫秒）
+  #   streamRate: 20
+  #   # （可选）对话标题的标题模型
+  #   titleModel: claude-3.5-haiku  # 使用可见模型名称（来自 models 配置的键）
+  #
+  #   # Vertex AI 配置 - 启用通过 Google Cloud 运行 Claude 模型
+  #   # 这类似于 Azure OpenAI，但适用于 Google Cloud 上的 Anthropic 模型
+  #   # 当存在此配置部分时，Vertex AI 自动启用
+  #   vertex:
+  #     # Vertex AI 区域（可选，默认为 'us-east5'）
+  #     # 可用区域：us-east5、us-central1、europe-west1、europe-west4、asia-southeast1
+  #     # 多区域端点：us、eu、global
+  #     region: "us-east5"
+  #     # Google 服务账户密钥文件路径（可选）
+  #     # 如果未指定，使用 GOOGLE_SERVICE_KEY_FILE 环境变量或默认路径（api/data/auth.json）
+  #     # project_id 自动从服务密钥文件中提取
+  #     # serviceKeyFile: "/path/to/service-account.json"
+  #     # Google Cloud 项目 ID（可选）- 从服务密钥文件自动检测
+  #     # 仅在你需要覆盖服务密钥中的 project_id 时指定
+  #     # projectId: "${VERTEX_PROJECT_ID}"
+  #
+  #     # ============================================================================
+  #     # 模型配置 - 设置可见模型名称和部署映射
+  #     # 类似于 Azure OpenAI 模型命名模式
+  #     # ============================================================================
+  #
+  #     # 选项 1：简单数组（旧格式 - 模型名称 = 部署名称）
+  #     # 如果你想在 UI 中显示技术模型 ID，请使用此选项
+  #     # models:
+  #     #   - "claude-sonnet-4-6"
+  #     #   - "claude-3-7-sonnet-20250219"
+  #     #   - "claude-3-5-sonnet-v2@20241022"
+  #     #   - "claude-3-5-haiku@20241022"
+  #
+  #     # 选项 2：带有自定义可见名称的对象格式（推荐）
+  #     # 键是 UI 中显示的可见模型名称（可以是任何你想要的名称）
+  #     # deploymentName 是 API 调用使用的实际 Vertex AI 模型 ID
+  #     # 你可以使用友好名称（避免空格以获得更清晰的 YAML）或技术 ID 作为键
+  #     models:
+  #       claude-opus-4.5:
+  #         deploymentName: claude-opus-4-5@20251101
+  #       claude-sonnet-4:
+  #         deploymentName: claude-sonnet-4-6
+  #       claude-3.7-sonnet:
+  #         deploymentName: claude-3-7-sonnet-20250219
+  #       claude-3.5-sonnet:
+  #         deploymentName: claude-3-5-sonnet-v2@20241022
+  #       claude-3.5-haiku:
+  #         deploymentName: claude-3-5-haiku@20241022
+  #
+  #     # 选项 3：混合格式与默认 deploymentName
+  #     # 设置默认 deploymentName 并对模型使用布尔值
+  #     # deploymentName: claude-sonnet-4-6
+  #     # models:
+  #     #   claude-sonnet-4: true  # 将使用默认 deploymentName
+  #     #   claude-3.5-haiku:
+  #     #     deploymentName: claude-3-5-haiku@20241022  # 覆盖此模型
+
+  custom:
+    # Groq 示例
+    - name: 'groq'
+      apiKey: '${GROQ_API_KEY}'
+      baseURL: 'https://api.groq.com/openai/v1/'
+      models:
+        default:
+          - 'llama3-70b-8192'
+          - 'llama3-8b-8192'
+          - 'llama2-70b-4096'
+          - 'mixtral-8x7b-32768'
+          - 'gemma-7b-it'
+        fetch: false
+      titleConvo: true
+      titleModel: 'mixtral-8x7b-32768'
+      modelDisplayLabel: 'groq'
+
+    # Mistral AI 示例
+    - name: 'Mistral' # 端点的唯一名称
+      # 对于 `apiKey` 和 `baseURL`，你可以使用你定义的环境变量。
+      # 推荐的环境变量：
+      apiKey: '${MISTRAL_API_KEY}'
+      baseURL: 'https://api.mistral.ai/v1'
+
+      # 模型配置
+      models:
+        # 默认使用的模型列表。至少需要一个值。
+        default: ['mistral-tiny', 'mistral-small', 'mistral-medium']
+        # Fetch 选项：设置为 true 从 API 获取模型。
+        fetch: true # 默认为 false。
+
+      # 可选配置
+
+      # 标题对话设置
+      titleConvo: true # 设置为 true 启用标题对话
+
+      # 标题方法：在 "completion" 或 "functions" 之间选择。
+      # titleMethod: "completion"  # 如果省略，默认为 "completion"。
+
+      # 标题模型：指定用于标题的模型。
+      titleModel: 'mistral-tiny' # 如果省略，默认为 "gpt-3.5-turbo"。
+
+      # 摘要设置：设置为 true 启用摘要。
+      # summarize: false
+
+      # 摘要模型：如果启用摘要，指定使用的模型。
+      # summaryModel: "mistral-tiny"  # 如果省略，默认为 "gpt-3.5-turbo"。
+
+      # 消息中显示的 AI 模型标签。
+      modelDisplayLabel: 'Mistral' # 未设置时默认为 "AI"。
+
+      # 向请求添加额外参数。默认参数将被覆盖。
+      # addParams:
+      # safe_prompt: true # 此字段特定于 Mistral AI：https://docs.mistral.ai/api/
+
+      # 从请求中删除默认参数。参见下面链接的指南中的默认参数。
+      # 注意：对于 Mistral，必须删除以下参数，否则会遇到 422 错误：
+      dropParams: ['stop', 'user', 'frequency_penalty', 'presence_penalty']
+
+    # OpenRouter 示例
+    - name: 'OpenRouter'
+      # 对于 `apiKey` 和 `baseURL`，你可以使用你定义的环境变量。
+      # 推荐的环境变量：
+      apiKey: '${OPENROUTER_KEY}'
+      baseURL: 'https://openrouter.ai/api/v1'
+      headers:
+        x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
+      models:
+        default: ['meta-llama/llama-3-70b-instruct']
+        fetch: true
+      titleConvo: true
+      titleModel: 'meta-llama/llama-3-70b-instruct'
+      # 推荐：从请求中删除 stop 参数，因为 Openrouter 模型使用多种停止令牌。
+      dropParams: ['stop']
+      modelDisplayLabel: 'OpenRouter'
+
+    # Helicone 示例
+    - name: 'Helicone'
+      # 对于 `apiKey` 和 `baseURL`，你可以使用你定义的环境变量。
+      # 推荐的环境变量：
+      apiKey: '${HELICONE_KEY}'
+      baseURL: 'https://ai-gateway.helicone.ai'
+      headers:
+        x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
+      models:
+        default:
+          ['gpt-4o-mini', 'claude-4.5-sonnet', 'llama-3.1-8b-instruct', 'gemini-2.5-flash-lite']
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-4o-mini'
+      modelDisplayLabel: 'Helicone'
+      iconURL: https://marketing-assets-helicone.s3.us-west-2.amazonaws.com/helicone.png
+
+    # Portkey AI 示例
+    - name: 'Portkey'
+      apiKey: 'dummy'
+      baseURL: 'https://api.portkey.ai/v1'
+      headers:
+        x-portkey-api-key: '${PORTKEY_API_KEY}'
+        x-portkey-virtual-key: '${PORTKEY_OPENAI_VIRTUAL_KEY}'
+      models:
+        default: ['gpt-4o-mini', 'gpt-4o', 'chatgpt-4o-latest']
+        fetch: true
+      titleConvo: true
+      titleModel: 'current_model'
+      summarize: false
+      summaryModel: 'current_model'
+      modelDisplayLabel: 'Portkey'
+      iconURL: https://images.crunchbase.com/image/upload/c_pad,f_auto,q_auto:eco,dpr_1/rjqy7ghvjoiu4cd1xjbf
+
+  # AWS Bedrock 示例
+  # 注意：Bedrock 端点通过环境变量配置
+  # bedrock:
+  #   # 模型配置
+  #   # 指定可用的模型（等同于 BEDROCK_AWS_MODELS 环境变量）
+  #   models:
+  #     - "anthropic.claude-3-7-sonnet-20250219-v1:0"
+  #     - "anthropic.claude-3-5-sonnet-20241022-v2:0"
+  #
+  #   # 推理配置文件配置
+  #   # 将模型 ID 映射到其推理配置文件 ARN
+  #   # 重要：模型 ID（键）必须是有效的 AWS Bedrock 模型 ID，你已添加到上面的模型列表中
+  #   # ARN（值）是你希望为此模型映射到的推理配置文件
+  #   # 模型 ID 和 ARN 都发送到 AWS - 模型 ID 用于验证/元数据，ARN 用于路由
+  #   inferenceProfiles:
+  #     "us.anthropic.claude-sonnet-4-6": "${BEDROCK_INFERENCE_PROFILE_CLAUDE_SONNET}"
+  #     "anthropic.claude-3-7-sonnet-20250219-v1:0": "arn:aws:bedrock:us-west-2:123456789012:application-inference-profile/abc123"
+  #
+  #   # Guardrail 配置
+  #   guardrailConfig:
+  #     guardrailIdentifier: "your-guardrail-id"
+  #     guardrailVersion: "1"
+  #
+  #     # 调试的跟踪行为（可选）
+  #     # - "enabled"：包含有关 guardrail 评估的基本跟踪信息
+  #     # - "enabled_full"：包含全面的跟踪详情（推荐用于调试）
+  #     # - "disabled"：无跟踪信息（默认）
+  #     # 跟踪输出记录到应用程序日志文件以进行合规审计
+  #     trace: "enabled"
+# 显示分组选项的 modelSpecs 配置示例
+# 'group' 字段在 UI 选择器中组织模型规格：
+# - 如果 'group' 与端点名称匹配（例如 "openAI"、"groq"），该规格将嵌套在该端点下
+# - 如果 'group' 是自定义名称（与任何端点不匹配），它将创建单独的可折叠部分
+# - 如果省略 'group'，该规格将作为顶级独立项出现
+#
+# 'groupIcon' 字段为自定义组设置图标：
+# - 只需在每个组的一个规格上设置（使用第一个）
+# - 可以是 URL 或内置端点键（例如 "openAI"、"anthropic"、"groq"）
+# modelSpecs:
+#   list:
+#     # 示例 1：嵌套在端点下（与 openAI 端点分组）
+#     - name: "gpt-4o"
+#       label: "GPT-4 Optimized"
+#       description: "Most capable GPT-4 model with multimodal support"
+#       group: "openAI"  # 与端点名称匹配的字符串值
+#       preset:
+#         endpoint: "openAI"
+#         model: "gpt-4o"
+#
+#     # 示例 2：嵌套在自定义端点下（与 groq 端点分组）
+#     - name: "llama3-70b-8192"
+#       label: "Llama 3 70B"
+#       description: "Fastest inference available - great for quick responses"
+#       group: "groq"  # 与 endpoints.custom 中自定义端点名称匹配的字符串值
+#       preset:
+#         endpoint: "groq"
+#         model: "llama3-70b-8192"
+#
+#     # 示例 3：带图标的自定义组（创建单独的可折叠部分）
+#     - name: "coding-assistant"
+#       label: "Coding Assistant"
+#       description: "Specialized for coding tasks"
+#       group: "my-assistants"  # 自定义字符串 - 与任何端点不匹配，因此创建自己的组
+#       groupIcon: "https://example.com/icons/assistants.png"  # 组的图标 URL
+#       preset:
+#         endpoint: "openAI"
+#         model: "gpt-4o"
+#         instructions: "You are an expert coding assistant..."
+#         temperature: 0.3
+#
+#     - name: "writing-assistant"
+#       label: "Writing Assistant"
+#       description: "Specialized for creative writing"
+#       group: "my-assistants"  # 相同的自定义组名称 - 两个规格出现在同一部分
+#       # 无需再次设置 groupIcon - 使用第一个规格的图标
+#       preset:
+#         endpoint: "anthropic"
+#         model: "claude-sonnet-4"
+#         instructions: "You are a creative writing expert..."
+#
+#     # 示例 4：使用内置图标键的自定义组
+#     - name: "fast-models"
+#       label: "Fast Response Model"
+#       group: "Fast Models"
+#       groupIcon: "groq"  # 使用内置的 Groq 图标
+#       preset:
+#         endpoint: "groq"
+#         model: "llama3-8b-8192"
+#
+#     # 示例 5：独立（无组 - 出现在顶级）
+#     - name: "general-assistant"
+#       label: "General Assistant"
+#       description: "General purpose assistant"
+#       # 无 'group' 字段 - 作为顶级独立项出现（不嵌套）
+#       # hideBadgeRow: true  # 可选：隐藏此规格的工具徽章行
+#       preset:
+#         endpoint: "openAI"
+#         model: "gpt-4o-mini"
+
+# fileConfig:
+#   endpoints:
+#     assistants:
+#       fileLimit: 5
+#       fileSizeLimit: 10  # 单个文件的最大大小（MB）
+#       totalSizeLimit: 50  # 单个请求中所有文件的总大小限制（MB）
+#       supportedMimeTypes:
+#         - "image/.*"
+#         - "application/pdf"
+#     openAI:
+#       disabled: true  # 禁用向 OpenAI 端点上传文件
+#     default:
+#       totalSizeLimit: 20
+#     YourCustomEndpointName:
+#       fileLimit: 2
+#       fileSizeLimit: 5
+#   serverFileSizeLimit: 100  # 全局服务器文件大小限制（MB）
+#   avatarSizeLimit: 2  # 用户头像图像大小限制（MB）
+#   imageGeneration: # 图像生成设置，百分比或像素
+#     percentage: 100
+#     px: 1024
+#   # 客户端图像大小调整以防止上传错误
+#   clientImageResize:
+#     enabled: false  # 启用/禁用客户端图像大小调整（默认：false）
+#     maxWidth: 1900  # 调整后图像的最大宽度（默认：1900）
+#     maxHeight: 1900  # 调整后图像的最大高度（默认：1900）
+#     quality: 0.92  # JPEG 压缩质量（0.0-1.0，默认：0.92）
+# # 有关智能体配置的更多信息，请参阅自定义配置指南：
+# # https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/assistants_endpoint
+
+# 网页搜索配置（可选）
+# webSearch:
+#   # Jina 重新排序配置
+#   jinaApiKey: '${JINA_API_KEY}'  # 你的 Jina API 密钥
+#   jinaApiUrl: '${JINA_API_URL}'  # 自定义 Jina API URL（可选，默认为 https://api.jina.ai/v1/rerank）
+#   # 其他重新排序器
+#   cohereApiKey: '${COHERE_API_KEY}'
+#   # 搜索提供商
+#   serperApiKey: '${SERPER_API_KEY}'
+#   searxngInstanceUrl: '${SEARXNG_INSTANCE_URL}'
+#   searxngApiKey: '${SEARXNG_API_KEY}'
+#   # Tavily（搜索提供商和/或抓取器）
+#   tavilyApiKey: '${TAVILY_API_KEY}'
+#   # 内容抓取器
+#   firecrawlApiKey: '${FIRECRAWL_API_KEY}'
+#   firecrawlApiUrl: '${FIRECRAWL_API_URL}'
+#
+# Tavily 作为搜索和抓取提供商示例：
+# webSearch:
+#   searchProvider: tavily
+#   scraperProvider: tavily
+#   tavilyApiKey: '${TAVILY_API_KEY}'
+#   # 可选：自定义 API URL（默认为 https://api.tavily.com/search 和 https://api.tavily.com/extract）
+#   # tavilySearchUrl: '${TAVILY_SEARCH_URL}'
+#   # tavilyExtractUrl: '${TAVILY_EXTRACT_URL}'
+#   tavilySearchOptions:
+#     searchDepth: basic        # 'basic'、'advanced'、'fast' 或 'ultra-fast'（默认：basic）
+#     maxResults: 5             # 每次搜索 1-20 个结果（默认：5）
+#     topic: general            # 'general'、'news' 或 'finance'
+#     # includeAnswer: basic    # 包含答案摘要：true、'basic' 或 'advanced'
+#     # includeRawContent: markdown # 包含原始内容：true、'markdown' 或 'text'
+#     # includeImages: true     # 在结果中包含图像
+#     # includeFavicon: true    # 为每个结果包含 favicon URL
+#     # chunksPerSource: 3      # 每个源的块数，仅 'advanced' 深度时可用（1-3）
+#     # safeSearch: false       # 覆盖 Tavily safe_search 过滤（true 仅限企业）
+#     # includeDomains:         # 限制搜索到特定域（最多 300 个）
+#     #   - 'example.com'
+#     #   - 'docs.example.com'
+#     # excludeDomains:         # 从结果中排除特定域（最多 150 个）
+#     #   - 'spam.com'
+#     # timeRange: week         # 'day'、'week'、'month' 或 'year'
+#     # timeout: 15000          # HTTP 请求超时（毫秒）（最大 120000）
+#   tavilyScraperOptions:
+#     extractDepth: basic       # 'basic'（1 积分/5 个 URL）或 'advanced'（2 积分/5 个 URL，更彻底）
+#     # includeImages: false    # 包含从 URL 提取的图像
+#     # includeFavicon: false   # 为每个结果包含 favicon URL
+#     # format: markdown        # 'markdown'（默认）或 'text'（纯文本，可能增加延迟）
+#     # timeout: 15000          # HTTP 请求超时（毫秒）（最大 120000）；Tavily Extract 接收秒数，限制在 1-60
+
+# 用户记忆配置
+# memory:
+#   # （可选）禁用记忆功能
+#   disabled: false
+#   # （可选）将记忆键限制为特定值以限制记忆存储并提高一致性
+#   validKeys: ["preferences", "work_info", "personal_info", "skills", "interests", "context"]
+#   # （可选）记忆存储的最大令牌限制（尚未实现令牌计数）
+#   tokenLimit: 10000
+#   # （可选）启用个性化功能（如果配置了记忆，默认为 true）
+#   # 如果为 false，用户将在设置中看不到个性化标签
+#   personalize: true
+#   # （可选）记忆智能体配置，用于从聊天消息中自动更新记忆。
+#   # 如果省略，用户仍然可以手动创建、编辑、删除和引用记忆。
+#   agent:
+#     # 明确启用从聊天消息中自动更新记忆。
+#     enabled: true
+#     # 选项 1：通过 ID 使用现有智能体
+#     id: "your-memory-agent-id"
+#     # 选项 2：内联定义智能体
+#     # provider: "openai"
+#     # model: "gpt-4o-mini"
+#     # instructions: "You are a memory management assistant. Store and manage user information accurately."
+#     # model_parameters:
+#     #   temperature: 0.1

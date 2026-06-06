@@ -41,6 +41,8 @@ export * from './agents';
 export * from './prompts';
 /* Payments */
 export * from './payments';
+/* Balance */
+export * from './balance';
 /* Skills */
 export * from './skills';
 /* Endpoints */

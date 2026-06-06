@@ -691,6 +691,33 @@ export type TBalanceResponse = {
   refillAmount?: number;
 };
 
+export type TBalanceTransactionsQueryParams = {
+  limit?: number;
+  offset?: number;
+};
+
+export type TBalanceTransactionItem = {
+  id: string;
+  createdAt: string;
+  conversationId?: string;
+  model?: string;
+  context?: string;
+  tokenType: string;
+  rawAmount?: number;
+  tokenValue?: number;
+  rate?: number;
+  inputTokens?: number;
+  writeTokens?: number;
+  readTokens?: number;
+};
+
+export type TBalanceTransactionsResponse = {
+  transactions: TBalanceTransactionItem[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 export type TPaymentProvider = 'alipay';
 
 export type TPaymentOrderStatus = 'pending' | 'paid' | 'credited' | 'closed' | 'failed';

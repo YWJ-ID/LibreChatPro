@@ -5,6 +5,9 @@ import type { QueryObserverResult, UseQueryOptions } from '@tanstack/react-query
 import type t from 'librechat-data-provider';
 import store from '~/store';
 
+export const balanceTransactionsQueryKey = (params: t.TBalanceTransactionsQueryParams = {}) =>
+  [QueryKeys.balanceTransactions, params] as const;
+
 export const useGetBannerQuery = (
   config?: UseQueryOptions<t.TBannerResponse>,
 ): QueryObserverResult<t.TBannerResponse> => {
@@ -29,6 +32,24 @@ export const useGetUserBalance = (
     ...config,
     enabled: (config?.enabled ?? true) === true && queriesEnabled,
   });
+};
+
+export const useGetUserBalanceTransactions = (
+  params: t.TBalanceTransactionsQueryParams = {},
+  config?: UseQueryOptions<t.TBalanceTransactionsResponse>,
+): QueryObserverResult<t.TBalanceTransactionsResponse> => {
+  const queriesEnabled = useRecoilValue<boolean>(store.queriesEnabled);
+  return useQuery<t.TBalanceTransactionsResponse>(
+    balanceTransactionsQueryKey(params),
+    () => dataService.getUserBalanceTransactions(params),
+    {
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
+      ...config,
+      enabled: (config?.enabled ?? true) === true && queriesEnabled,
+    },
+  );
 };
 
 export const useGetSearchEnabledQuery = (

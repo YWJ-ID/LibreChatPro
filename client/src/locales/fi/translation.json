@@ -566,5 +566,12 @@
   "com_ui_version_var": "Versio {{0}}",
   "com_ui_versions": "Versiot",
   "com_ui_yes": "Kyllä",
-  "com_user_message": "Sinä"
+  "com_user_message": "Sinä",
+  "com_nav_balance_transactions_description": "Recent model usage charged to your balance.",
+  "com_nav_balance_transactions_empty": "No usage charges yet.",
+  "com_nav_balance_transactions_load_more": "Load more",
+  "com_nav_balance_transactions_loading": "Loading usage charges...",
+  "com_nav_balance_transactions_title": "Recent usage",
+  "com_nav_balance_transactions_unknown_model": "Unknown model",
+  "com_nav_setting_usage": "Usage"
 }

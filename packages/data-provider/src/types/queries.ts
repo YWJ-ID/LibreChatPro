@@ -4,6 +4,8 @@ import type * as a from '../types/agents';
 import type * as s from '../schemas';
 import type * as t from '../types';
 
+export type BalanceTransactionsListParams = t.TBalanceTransactionsQueryParams;
+
 export type Conversation = {
   id: string;
   createdAt: number;

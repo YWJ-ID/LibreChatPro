@@ -44,6 +44,9 @@ export const user = () => `${BASE_URL}/api/user`;
 
 export const balance = () => `${BASE_URL}/api/balance`;
 
+export const balanceTransactions = (params: q.BalanceTransactionsListParams = {}) =>
+  `${balance()}/transactions${buildQuery(params)}`;
+
 const paymentsRoot = `${BASE_URL}/api/payments`;
 
 export const paymentPackages = () => `${paymentsRoot}/packages`;
