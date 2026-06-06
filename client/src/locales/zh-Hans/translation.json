@@ -1381,5 +1381,9 @@
   "com_nav_orders_credits": "积分",
   "com_nav_orders_created": "创建时间",
   "com_nav_orders_paid": "支付时间",
-  "com_nav_orders_credited": "到账时间"
+  "com_nav_orders_credited": "到账时间",
+  "com_nav_balance_recharge": "充值积分",
+  "com_nav_balance_recharge_credits": "{{credits}} 积分",
+  "com_nav_balance_recharge_submit": "充值",
+  "com_nav_balance_custom_amount": "自定义金额（人民币）"
 }

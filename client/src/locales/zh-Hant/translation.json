@@ -895,5 +895,9 @@
   "com_nav_orders_credits": "積分",
   "com_nav_orders_created": "建立時間",
   "com_nav_orders_paid": "支付時間",
-  "com_nav_orders_credited": "到帳時間"
+  "com_nav_orders_credited": "到帳時間",
+  "com_nav_balance_recharge": "儲值積分",
+  "com_nav_balance_recharge_credits": "{{credits}} 積分",
+  "com_nav_balance_recharge_submit": "儲值",
+  "com_nav_balance_custom_amount": "自訂金額（人民幣）"
 }

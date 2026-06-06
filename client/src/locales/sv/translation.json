@@ -539,5 +539,9 @@
   "com_nav_orders_credits": "Credits",
   "com_nav_orders_created": "Created",
   "com_nav_orders_paid": "Paid",
-  "com_nav_orders_credited": "Credited"
+  "com_nav_orders_credited": "Credited",
+  "com_nav_balance_recharge": "Recharge credits",
+  "com_nav_balance_recharge_credits": "{{credits}} credits",
+  "com_nav_balance_recharge_submit": "Recharge",
+  "com_nav_balance_custom_amount": "Custom amount (CNY)"
 }
