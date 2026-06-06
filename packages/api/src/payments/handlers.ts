@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import type { Types } from 'mongoose';
 import type { PaymentProvider } from './providers';
 import type { PaymentServiceDeps } from './service';
+import { parsePagination } from '../admin/pagination';
 import { createPaymentService } from './service';
 
 type PaymentConfig = PaymentServiceDeps['config'];
@@ -181,6 +182,36 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
     }
   }
 
+  async function listOrders(req: PaymentRequest, res: Response) {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      if (!deps.methods) {
+        return res.status(503).json({ error: 'Payment service is not configured' });
+      }
+
+      const { limit, offset } = parsePagination(req.query);
+      const result = await deps.methods.listPaymentOrders({
+        filter: { user: userId },
+        limit,
+        offset,
+        sort: { createdAt: -1 },
+      });
+
+      return res.status(200).json({
+        orders: result.orders.map(serializePaymentOrder),
+        total: result.total,
+        limit,
+        offset,
+      });
+    } catch (error) {
+      logger.error('[payments] listOrders error:', error);
+      return res.status(500).json({ error: 'Failed to list payment orders' });
+    }
+  }
+
   async function getOrder(req: PaymentRequest<unknown, { orderId: string }>, res: Response) {
     try {
       const userId = getUserId(req);
@@ -219,5 +250,5 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
     }
   }
 
-  return { getPackages, createOrder, getOrder, handleAlipayNotify };
+  return { getPackages, createOrder, listOrders, getOrder, handleAlipayNotify };
 }

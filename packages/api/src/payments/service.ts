@@ -15,6 +15,7 @@ type PaymentMethods = Pick<
   | 'createPaymentOrder'
   | 'findPaymentOrderById'
   | 'findPaymentOrderByOutTradeNo'
+  | 'listPaymentOrders'
   | 'updatePaymentOrder'
 > &
   Pick<TransactionMethods, 'createTransaction'>;

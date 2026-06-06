@@ -51,7 +51,8 @@ const paymentsRoot = `${BASE_URL}/api/payments`;
 
 export const paymentPackages = () => `${paymentsRoot}/packages`;
 
-export const paymentOrders = () => `${paymentsRoot}/orders`;
+export const paymentOrders = (params?: q.PaymentOrdersListParams) =>
+  `${paymentsRoot}/orders${params ? buildQuery(params) : ''}`;
 
 export const paymentOrderById = (orderId: string) =>
   `${paymentOrders()}/${encodeURIComponent(orderId)}`;

@@ -1,4 +1,4 @@
-import type { FilterQuery, Model, Types } from 'mongoose';
+import type { FilterQuery, Model, QueryOptions, SortOrder, Types } from 'mongoose';
 import type { IPaymentOrder, PaymentOrderProvider, PaymentOrderStatus } from '~/types';
 
 type PaymentOrderInput = {
@@ -28,6 +28,13 @@ type PaymentOrderUpdate = Partial<
   >
 >;
 
+type PaymentOrderListOptions = {
+  filter: FilterQuery<IPaymentOrder>;
+  limit: number;
+  offset: number;
+  sort: Record<string, SortOrder>;
+};
+
 export function createPaymentOrderMethods(mongoose: typeof import('mongoose')) {
   const PaymentOrder = mongoose.models.PaymentOrder as Model<IPaymentOrder>;
 
@@ -43,6 +50,21 @@ export function createPaymentOrderMethods(mongoose: typeof import('mongoose')) {
     return PaymentOrder.findOne({ outTradeNo }).lean<IPaymentOrder>();
   }
 
+  async function listPaymentOrders({
+    filter,
+    limit,
+    offset,
+    sort,
+  }: PaymentOrderListOptions): Promise<{ orders: IPaymentOrder[]; total: number }> {
+    const options: QueryOptions<IPaymentOrder> = { limit, skip: offset, sort };
+    const [orders, total] = await Promise.all([
+      PaymentOrder.find(filter, null, options).lean<IPaymentOrder[]>(),
+      PaymentOrder.countDocuments(filter),
+    ]);
+
+    return { orders, total };
+  }
+
   async function updatePaymentOrder(
     filter: FilterQuery<IPaymentOrder>,
     update: PaymentOrderUpdate,
@@ -54,6 +76,7 @@ export function createPaymentOrderMethods(mongoose: typeof import('mongoose')) {
     createPaymentOrder,
     findPaymentOrderById,
     findPaymentOrderByOutTradeNo,
+    listPaymentOrders,
     updatePaymentOrder,
   };
 }

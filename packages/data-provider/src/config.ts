@@ -2142,6 +2142,10 @@ export enum SettingsTabValues {
    */
   USAGE = 'usage',
   /**
+   * Tab for Order Settings
+   */
+  ORDERS = 'orders',
+  /**
    * Tab for Account Settings
    */
   ACCOUNT = 'account',

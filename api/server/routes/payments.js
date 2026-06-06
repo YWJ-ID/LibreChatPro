@@ -13,6 +13,7 @@ const handlers = createPaymentHandlers({
 
 router.get('/packages', handlers.getPackages);
 router.post('/orders', requireJwtAuth, handlers.createOrder);
+router.get('/orders', requireJwtAuth, handlers.listOrders);
 router.get('/orders/:orderId', requireJwtAuth, handlers.getOrder);
 router.post('/alipay/notify', handlers.handleAlipayNotify);
 

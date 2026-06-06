@@ -155,6 +155,12 @@ export function getPaymentPackages(): Promise<t.TPaymentPackagesResponse> {
   return request.get(endpoints.paymentPackages());
 }
 
+export function getPaymentOrders(
+  params: t.TPaymentOrdersQueryParams = {},
+): Promise<t.TPaymentOrdersResponse> {
+  return request.get(endpoints.paymentOrders(params));
+}
+
 export function createPaymentOrder(
   payload: t.TCreatePaymentOrderRequest,
 ): Promise<t.TCreatePaymentOrderResponse> {

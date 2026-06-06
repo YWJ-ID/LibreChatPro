@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { QueryKeys, dataService } from 'librechat-data-provider';
 import type { QueryObserverResult, UseQueryOptions } from '@tanstack/react-query';
-import type { TPaymentOrder, TPaymentPackagesResponse } from 'librechat-data-provider';
+import type {
+  TPaymentOrder,
+  TPaymentPackagesResponse,
+  TPaymentOrdersQueryParams,
+  TPaymentOrdersResponse,
+} from 'librechat-data-provider';
 
 export const paymentPackagesQueryKey = () => [QueryKeys.paymentPackages] as const;
 
 export const paymentOrderQueryKey = (orderId: string) => [QueryKeys.paymentOrder, orderId] as const;
+
+export const paymentOrdersQueryKey = (params: TPaymentOrdersQueryParams = {}) =>
+  [QueryKeys.paymentOrders, params] as const;
 
 export const useGetPaymentPackages = <TData = TPaymentPackagesResponse>(
   config?: UseQueryOptions<TPaymentPackagesResponse, unknown, TData>,
@@ -17,6 +25,22 @@ export const useGetPaymentPackages = <TData = TPaymentPackagesResponse>(
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchOnMount: false,
+      ...config,
+    },
+  );
+};
+
+export const useGetPaymentOrders = <TData = TPaymentOrdersResponse>(
+  params: TPaymentOrdersQueryParams = {},
+  config?: UseQueryOptions<TPaymentOrdersResponse, unknown, TData>,
+): QueryObserverResult<TData, unknown> => {
+  return useQuery<TPaymentOrdersResponse, unknown, TData>(
+    paymentOrdersQueryKey(params),
+    () => dataService.getPaymentOrders(params),
+    {
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
       ...config,
     },
   );

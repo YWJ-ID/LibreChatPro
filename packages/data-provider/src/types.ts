@@ -753,6 +753,18 @@ export type TPaymentOrder = {
   creditedAt?: string;
 };
 
+export type TPaymentOrdersQueryParams = {
+  limit?: number;
+  offset?: number;
+};
+
+export type TPaymentOrdersResponse = {
+  orders: TPaymentOrder[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 export type TCreatePaymentOrderRequest =
   | { packageId: string; amountCny?: never }
   | { amountCny: string; packageId?: never };

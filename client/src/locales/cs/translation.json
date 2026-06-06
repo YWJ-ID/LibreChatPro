@@ -687,5 +687,19 @@
   "com_nav_balance_transactions_loading": "Loading usage charges...",
   "com_nav_balance_transactions_title": "Recent usage",
   "com_nav_balance_transactions_unknown_model": "Unknown model",
-  "com_nav_setting_usage": "Usage"
+  "com_nav_setting_usage": "Usage",
+  "com_nav_setting_orders": "Orders",
+  "com_nav_orders_title": "Orders",
+  "com_nav_orders_description": "Your recent payment and recharge orders.",
+  "com_nav_orders_empty": "No payment orders yet.",
+  "com_nav_orders_loading": "Loading orders...",
+  "com_nav_orders_previous": "Previous",
+  "com_nav_orders_next": "Next",
+  "com_nav_orders_page": "Page {{page}} / {{total}}",
+  "com_nav_orders_showing": "Showing {{start}}-{{end}} of {{total}}",
+  "com_nav_orders_amount": "Amount",
+  "com_nav_orders_credits": "Credits",
+  "com_nav_orders_created": "Created",
+  "com_nav_orders_paid": "Paid",
+  "com_nav_orders_credited": "Credited"
 }

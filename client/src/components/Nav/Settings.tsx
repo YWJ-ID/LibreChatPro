@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SettingsTabValues } from 'librechat-data-provider';
-import { MessageSquare, Command, DollarSign, ReceiptText } from 'lucide-react';
+import { MessageSquare, Command, DollarSign, ReceiptText, ShoppingCart } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import {
   GearIcon,
@@ -21,6 +21,7 @@ import {
   Data,
   Balance,
   Usage,
+  Orders,
   Account,
 } from './SettingsTabs';
 import usePersonalizationAccess from '~/hooks/usePersonalizationAccess';
@@ -47,6 +48,7 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       ...(startupConfig?.balance?.enabled
         ? [SettingsTabValues.BALANCE, SettingsTabValues.USAGE]
         : []),
+      ...(startupConfig?.payments?.enabled ? [SettingsTabValues.ORDERS] : []),
       SettingsTabValues.ACCOUNT,
     ];
     const currentIndex = tabs.indexOf(activeTab);
@@ -121,6 +123,15 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
             value: SettingsTabValues.USAGE,
             icon: <ReceiptText size={18} />,
             label: 'com_nav_setting_usage' as TranslationKeys,
+          },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
+    ...(startupConfig?.payments?.enabled
+      ? [
+          {
+            value: SettingsTabValues.ORDERS,
+            icon: <ShoppingCart size={18} />,
+            label: 'com_nav_setting_orders' as TranslationKeys,
           },
         ]
       : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
@@ -259,6 +270,11 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     {startupConfig?.balance?.enabled && (
                       <Tabs.Content value={SettingsTabValues.USAGE} tabIndex={-1}>
                         <Usage />
+                      </Tabs.Content>
+                    )}
+                    {startupConfig?.payments?.enabled && (
+                      <Tabs.Content value={SettingsTabValues.ORDERS} tabIndex={-1}>
+                        <Orders />
                       </Tabs.Content>
                     )}
                     <Tabs.Content value={SettingsTabValues.ACCOUNT} tabIndex={-1}>

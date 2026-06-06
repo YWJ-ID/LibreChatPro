@@ -13,6 +13,7 @@ export enum QueryKeys {
   balance = 'balance',
   balanceTransactions = 'balanceTransactions',
   paymentPackages = 'paymentPackages',
+  paymentOrders = 'paymentOrders',
   paymentOrder = 'paymentOrder',
   endpoints = 'endpoints',
   presets = 'presets',

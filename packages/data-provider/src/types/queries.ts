@@ -6,6 +6,8 @@ import type * as t from '../types';
 
 export type BalanceTransactionsListParams = t.TBalanceTransactionsQueryParams;
 
+export type PaymentOrdersListParams = t.TPaymentOrdersQueryParams;
+
 export type Conversation = {
   id: string;
   createdAt: number;
