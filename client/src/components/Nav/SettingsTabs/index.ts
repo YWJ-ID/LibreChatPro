@@ -1,6 +1,7 @@
 export { default as Chat } from './Chat/Chat';
 export { default as Data } from './Data/Data';
 export { default as Usage } from './Usage/Usage';
+export { default as Recharge } from './Recharge/Recharge';
 export { default as Orders } from './Orders/Orders';
 export { default as Speech } from './Speech/Speech';
 export { default as Balance } from './Balance/Balance';

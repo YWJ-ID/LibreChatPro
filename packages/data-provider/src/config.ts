@@ -2138,6 +2138,10 @@ export enum SettingsTabValues {
    */
   BALANCE = 'balance',
   /**
+   * Tab for Recharge Settings
+   */
+  RECHARGE = 'recharge',
+  /**
    * Tab for Usage Settings
    */
   USAGE = 'usage',
