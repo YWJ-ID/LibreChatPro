@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { SettingsTabValues } from 'librechat-data-provider';
-import { MessageSquare, Command, DollarSign, ReceiptText, ShoppingCart } from 'lucide-react';
+import { MessageSquare, Command, DollarSign, ReceiptText, ShoppingCart, CreditCard } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import {
   GearIcon,
@@ -20,6 +20,7 @@ import {
   Personalization,
   Data,
   Balance,
+  Recharge,
   Usage,
   Orders,
   Account,
@@ -45,9 +46,9 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
       SettingsTabValues.SPEECH,
       ...(hasAnyPersonalizationFeature ? [SettingsTabValues.PERSONALIZATION] : []),
       SettingsTabValues.DATA,
-      ...(startupConfig?.balance?.enabled
-        ? [SettingsTabValues.BALANCE, SettingsTabValues.USAGE]
-        : []),
+      ...(startupConfig?.balance?.enabled ? [SettingsTabValues.BALANCE] : []),
+      ...(startupConfig?.payments?.enabled ? [SettingsTabValues.RECHARGE] : []),
+      ...(startupConfig?.balance?.enabled ? [SettingsTabValues.USAGE] : []),
       ...(startupConfig?.payments?.enabled ? [SettingsTabValues.ORDERS] : []),
       SettingsTabValues.ACCOUNT,
     ];
@@ -119,6 +120,19 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
             icon: <DollarSign size={18} />,
             label: 'com_nav_setting_balance' as TranslationKeys,
           },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
+    ...(startupConfig?.payments?.enabled
+      ? [
+          {
+            value: SettingsTabValues.RECHARGE,
+            icon: <CreditCard size={18} />,
+            label: 'com_nav_setting_recharge' as TranslationKeys,
+          },
+        ]
+      : ([] as { value: SettingsTabValues; icon: React.JSX.Element; label: TranslationKeys }[])),
+    ...(startupConfig?.balance?.enabled
+      ? [
           {
             value: SettingsTabValues.USAGE,
             icon: <ReceiptText size={18} />,
@@ -265,6 +279,11 @@ export default function Settings({ open, onOpenChange }: TDialogProps) {
                     {startupConfig?.balance?.enabled && (
                       <Tabs.Content value={SettingsTabValues.BALANCE} tabIndex={-1}>
                         <Balance />
+                      </Tabs.Content>
+                    )}
+                    {startupConfig?.payments?.enabled && (
+                      <Tabs.Content value={SettingsTabValues.RECHARGE} tabIndex={-1}>
+                        <Recharge />
                       </Tabs.Content>
                     )}
                     {startupConfig?.balance?.enabled && (
