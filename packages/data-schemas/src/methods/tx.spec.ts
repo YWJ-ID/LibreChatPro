@@ -72,6 +72,21 @@ describe('getValueKey', () => {
     expect(getValueKey('openai/gpt-5.4-pro')).toBe('gpt-5.4-pro');
   });
 
+  it('should return "gpt-5.5" for model name containing "gpt-5.5"', () => {
+    expect(getValueKey('gpt-5.5')).toBe('gpt-5.5');
+    expect(getValueKey('gpt-5.5-thinking')).toBe('gpt-5.5');
+    expect(getValueKey('openai/gpt-5.5')).toBe('gpt-5.5');
+  });
+
+  it('should return exact ark model pricing keys for glm and deepseek v4 models', () => {
+    expect(getValueKey('glm-5.1')).toBe('glm-5.1');
+    expect(getValueKey('ark/glm-5.2')).toBe('glm-5.2');
+    expect(getValueKey('deepseek-v4')).toBe('deepseek-v4');
+    expect(getValueKey('deepseek-v4-flash')).toBe('deepseek-v4-flash');
+    expect(getValueKey('deepseek-v4-pro')).toBe('deepseek-v4-pro');
+    expect(getValueKey('minimax-m3')).toBe('minimax-m3');
+  });
+
   it('should return "gpt-3.5-turbo-1106" for model name containing "gpt-3.5-turbo-1106"', () => {
     expect(getValueKey('gpt-3.5-turbo-1106-some-other-info')).toBe('gpt-3.5-turbo-1106');
     expect(getValueKey('openai/gpt-3.5-turbo-1106')).toBe('gpt-3.5-turbo-1106');
@@ -438,6 +453,48 @@ describe('getMultiplier', () => {
     );
     expect(getMultiplier({ model: 'openai/gpt-5.4-pro', tokenType: 'prompt' })).toBe(
       tokenValues['gpt-5.4-pro'].prompt,
+    );
+  });
+
+  it('should return the correct multiplier for gpt-5.5 instead of broad gpt-5 pricing', () => {
+    expect(getMultiplier({ model: 'gpt-5.5', tokenType: 'prompt' })).toBe(
+      tokenValues['gpt-5.5'].prompt,
+    );
+    expect(getMultiplier({ model: 'gpt-5.5', tokenType: 'completion' })).toBe(
+      tokenValues['gpt-5.5'].completion,
+    );
+    expect(getMultiplier({ model: 'openai/gpt-5.5', tokenType: 'prompt' })).toBe(
+      tokenValues['gpt-5.5'].prompt,
+    );
+    expect(getMultiplier({ model: 'gpt-5.5-thinking', tokenType: 'completion' })).toBe(
+      tokenValues['gpt-5.5'].completion,
+    );
+    expect(getMultiplier({ model: 'gpt-5.5', tokenType: 'prompt' })).not.toBe(
+      tokenValues['gpt-5'].prompt,
+    );
+  });
+
+  it('should return exact ark model multipliers without falling back to broad keys', () => {
+    const arkModels = [
+      'glm-5.1',
+      'glm-5.2',
+      'deepseek-v4',
+      'deepseek-v4-flash',
+      'deepseek-v4-pro',
+      'minimax-m3',
+    ];
+
+    for (const model of arkModels) {
+      expect(getMultiplier({ model, tokenType: 'prompt' })).toBe(tokenValues[model].prompt);
+      expect(getMultiplier({ model, tokenType: 'completion' })).toBe(tokenValues[model].completion);
+      expect(getMultiplier({ model, tokenType: 'prompt' })).not.toBe(defaultRate);
+    }
+
+    expect(getMultiplier({ model: 'deepseek-v4-flash', tokenType: 'prompt' })).not.toBe(
+      tokenValues.deepseek.prompt,
+    );
+    expect(getMultiplier({ model: 'deepseek-v4-pro', tokenType: 'completion' })).not.toBe(
+      tokenValues.deepseek.completion,
     );
   });
 
@@ -1420,6 +1477,7 @@ describe('getCacheMultiplier', () => {
       'gpt-5.2',
       'gpt-5.3',
       'gpt-5.4',
+      'gpt-5.5',
       'gpt-5-mini',
       'gpt-5-nano',
       'o1',
@@ -1449,6 +1507,12 @@ describe('getCacheMultiplier', () => {
     expect(getCacheMultiplier({ model: 'openai/gpt-5.3', cacheType: 'write' })).toBe(
       cacheTokenValues['gpt-5.3'].write,
     );
+    expect(getCacheMultiplier({ model: 'gpt-5.5-thinking', cacheType: 'read' })).toBe(
+      cacheTokenValues['gpt-5.5'].read,
+    );
+    expect(getCacheMultiplier({ model: 'openai/gpt-5.5', cacheType: 'write' })).toBe(
+      cacheTokenValues['gpt-5.5'].write,
+    );
   });
 
   it('should return null for pro models that do not support caching', () => {
@@ -1467,6 +1531,7 @@ describe('getCacheMultiplier', () => {
       'gpt-5.2',
       'gpt-5.3',
       'gpt-5.4',
+      'gpt-5.5',
       'gpt-5-mini',
       'gpt-5-nano',
     ];
