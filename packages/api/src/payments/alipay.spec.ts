@@ -38,6 +38,44 @@ describe('createAlipayProvider', () => {
         total_amount: '10.00',
         subject: 'LibreChat Credits 1000000',
         product_code: 'FAST_INSTANT_TRADE_PAY',
+        timeout_express: '10m',
+      },
+    });
+  });
+
+  it('sets a ten minute timeout when creating page payment forms', async () => {
+    const pageExecute = jest.fn(async () => '<form></form>');
+    const provider = createAlipayProvider({
+      appId: 'app-id',
+      gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+      privateKey: 'private-key',
+      alipayPublicKey: 'alipay-public-key',
+      notifyUrl: 'https://example.com/notify',
+      returnUrl: 'https://example.com/return',
+      sellerId: 'seller-id',
+      signType: 'RSA2',
+      client: {
+        pageExecute,
+        checkNotifySign: jest.fn(() => true),
+        exec: jest.fn(),
+      },
+    });
+
+    await provider.createPaymentForm({
+      outTradeNo: 'LC202607010001',
+      amountCny: '10.00',
+      subject: 'LibreChat Credits 1000000',
+    });
+
+    expect(pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', {
+      notifyUrl: 'https://example.com/notify',
+      returnUrl: 'https://example.com/return',
+      bizContent: {
+        out_trade_no: 'LC202607010001',
+        total_amount: '10.00',
+        subject: 'LibreChat Credits 1000000',
+        product_code: 'FAST_INSTANT_TRADE_PAY',
+        timeout_express: '10m',
       },
     });
   });
@@ -260,6 +298,7 @@ describe('createAlipayProvider', () => {
           total_amount: '10.00',
           subject: 'LibreChat Credits 1000000',
           product_code: 'FAST_INSTANT_TRADE_PAY',
+          timeout_express: '10m',
         },
       });
     } finally {

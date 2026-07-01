@@ -89,6 +89,7 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
           total_amount: input.amountCny,
           subject: input.subject,
           product_code: 'FAST_INSTANT_TRADE_PAY',
+          timeout_express: '10m',
         },
       });
     },
