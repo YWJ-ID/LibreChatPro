@@ -30,6 +30,10 @@ type ConfirmPaymentInput = {
   filter: Parameters<PaymentOrderMethods['updatePaymentOrder']>[0];
 };
 
+type ReconcileExpiredPendingOrdersInput = {
+  userId: string;
+};
+
 export type PaymentServiceDeps = {
   config: PaymentConfig;
   provider: PaymentProvider;
@@ -37,6 +41,8 @@ export type PaymentServiceDeps = {
 };
 
 const successStatuses = new Set(['TRADE_SUCCESS', 'TRADE_FINISHED']);
+const PAYMENT_ORDER_EXPIRY_MS = 10 * 60 * 1000;
+const EXPIRED_PENDING_ORDER_RECONCILE_LIMIT = 20;
 
 export function createPaymentService(deps: PaymentServiceDeps) {
   const creditPaymentOrder = createCreditPaymentOrder(deps.methods);
@@ -74,6 +80,67 @@ export function createPaymentService(deps: PaymentServiceDeps) {
 
     return creditPaymentOrder(paidOrder);
   }
+
+  function getExpiredPendingCutoff(now = new Date()) {
+    return new Date(now.getTime() - PAYMENT_ORDER_EXPIRY_MS);
+  }
+
+  async function closeExpiredPendingOrder(order: IPaymentOrder, now = new Date()) {
+    return deps.methods.updatePaymentOrder(
+      {
+        _id: order._id,
+        user: order.user,
+        status: 'pending',
+        createdAt: { $lte: getExpiredPendingCutoff(now) },
+      },
+      {
+        status: 'closed',
+        closedAt: now,
+      },
+    );
+  }
+
+  async function reconcileExpiredPendingOrder(order: IPaymentOrder, now = new Date()) {
+    if (deps.provider.queryOrder) {
+      try {
+        const notification = await deps.provider.queryOrder({ outTradeNo: order.outTradeNo });
+        const creditedOrder = await confirmPayment({
+          order,
+          notification,
+          source: 'query',
+          filter: { _id: order._id, user: String(order.user), status: { $in: ['pending', 'paid', 'closed'] } },
+        });
+
+        if (creditedOrder) {
+          return creditedOrder;
+        }
+      } catch (error) {
+        return order;
+      }
+    }
+
+    return closeExpiredPendingOrder(order, now);
+  }
+
+  async function reconcileExpiredPendingOrdersForUser(input: ReconcileExpiredPendingOrdersInput) {
+    const cutoff = getExpiredPendingCutoff();
+    const result = await deps.methods.listPaymentOrders({
+      filter: {
+        user: input.userId,
+        provider: deps.provider.name,
+        status: 'pending',
+        createdAt: { $lte: cutoff },
+      },
+      limit: EXPIRED_PENDING_ORDER_RECONCILE_LIMIT,
+      offset: 0,
+      sort: { createdAt: 1 },
+    });
+
+    for (const order of result.orders) {
+      await reconcileExpiredPendingOrder(order);
+    }
+  }
+
   async function createOrder(
     input: TCreatePaymentOrderRequest & { userId: string },
   ): Promise<TCreatePaymentOrderResponse> {
@@ -150,5 +217,5 @@ export function createPaymentService(deps: PaymentServiceDeps) {
     });
   }
 
-  return { createOrder, handleNotify, queryOrderAndCreditIfNeeded };
+  return { createOrder, handleNotify, queryOrderAndCreditIfNeeded, reconcileExpiredPendingOrdersForUser };
 }
