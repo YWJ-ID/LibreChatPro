@@ -189,7 +189,7 @@ export function createPaymentService(deps: PaymentServiceDeps) {
       order,
       notification,
       source: 'notify',
-      filter: { outTradeNo: notification.outTradeNo, status: { $in: ['pending', 'paid'] } },
+      filter: { outTradeNo: notification.outTradeNo, status: { $in: ['pending', 'paid', 'closed'] } },
     });
 
     return creditedOrder || order.status === 'credited' ? 'success' : 'failure';

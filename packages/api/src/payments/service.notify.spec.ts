@@ -84,7 +84,7 @@ describe('createPaymentService payment confirmation', () => {
     expect(result).toBe('success');
     expect(methods.findPaymentOrderByOutTradeNo).toHaveBeenCalledWith('LC202605260004');
     expect(updates[0]).toEqual({
-      filter: { outTradeNo: 'LC202605260004', status: { $in: ['pending', 'paid'] } },
+      filter: { outTradeNo: 'LC202605260004', status: { $in: ['pending', 'paid', 'closed'] } },
       update: {
         status: 'paid',
         providerTradeNo: 'ALI123',
@@ -111,6 +111,39 @@ describe('createPaymentService payment confirmation', () => {
       status: 'credited',
       creditedTransactionId: new Types.ObjectId('000000000000000000000001'),
     });
+  });
+
+  // Closed orders are credited when a later valid Alipay success notification arrives.
+  it('credits closed order after valid successful notification', async () => {
+    const { methods, transactions, updates } = createMethods(createOrder({ status: 'closed' }));
+    const provider: PaymentProvider = {
+      name: 'alipay',
+      createPaymentForm: jest.fn(async () => '<form></form>'),
+      verifyNotify: jest.fn(async () => ({
+        isValid: true,
+        outTradeNo: 'LC202605260004',
+        providerTradeNo: 'ALI123',
+        amountCny: '10.00',
+        tradeStatus: 'TRADE_SUCCESS',
+        notifyId: 'notify-closed',
+      })),
+    };
+    const service = createPaymentService({ config, provider, methods });
+
+    const result = await service.handleNotify({ sign: 'signature' });
+
+    expect(result).toBe('success');
+    expect(updates[0]).toEqual({
+      filter: { outTradeNo: 'LC202605260004', status: { $in: ['pending', 'paid', 'closed'] } },
+      update: {
+        status: 'paid',
+        providerTradeNo: 'ALI123',
+        notifiedAt: expect.any(Date),
+        paidAt: expect.any(Date),
+        providerPayload: { tradeStatus: 'TRADE_SUCCESS', notifyId: 'notify-closed' },
+      },
+    });
+    expect(transactions).toHaveLength(1);
   });
 
   it('returns failure without crediting when notification is invalid', async () => {
