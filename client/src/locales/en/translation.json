@@ -1752,5 +1752,11 @@
   "com_nav_orders_credits": "Credits",
   "com_nav_orders_created": "Created",
   "com_nav_orders_paid": "Paid",
-  "com_nav_orders_credited": "Credited"
+  "com_nav_orders_credited": "Credited",
+  "com_nav_orders_closed": "Closed",
+  "com_nav_orders_status_pending": "Pending",
+  "com_nav_orders_status_paid": "Paid",
+  "com_nav_orders_status_credited": "Credited",
+  "com_nav_orders_status_closed": "Closed",
+  "com_nav_orders_status_failed": "Failed"
 }

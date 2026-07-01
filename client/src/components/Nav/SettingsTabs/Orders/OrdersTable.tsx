@@ -20,6 +20,21 @@ function formatCurrency(value: number): string {
   return `¥${value.toFixed(2)}`;
 }
 
+function getStatusLabel(status: t.TPaymentOrder['status'], localize: ReturnType<typeof useLocalize>): string {
+  switch (status) {
+    case 'pending':
+      return localize('com_nav_orders_status_pending');
+    case 'paid':
+      return localize('com_nav_orders_status_paid');
+    case 'credited':
+      return localize('com_nav_orders_status_credited');
+    case 'closed':
+      return localize('com_nav_orders_status_closed');
+    case 'failed':
+      return localize('com_nav_orders_status_failed');
+  }
+}
+
 function OrdersRow({ order }: { order: t.TPaymentOrder }) {
   const localize = useLocalize();
   return (
@@ -35,10 +50,11 @@ function OrdersRow({ order }: { order: t.TPaymentOrder }) {
             {order.creditedAt ? (
               <span>{localize('com_nav_orders_credited')}: {formatDate(order.creditedAt)}</span>
             ) : null}
+            {order.closedAt ? <span>{localize('com_nav_orders_closed')}: {formatDate(order.closedAt)}</span> : null}
           </div>
         </div>
         <div className="shrink-0 rounded-md bg-surface-tertiary px-2 py-1 text-xs text-text-primary">
-          {order.status}
+          {getStatusLabel(order.status, localize)}
         </div>
       </div>
     </li>
