@@ -70,6 +70,7 @@ function serializePaymentOrder(order: IPaymentOrder): TPaymentOrder {
     updatedAt: toISOString(order.updatedAt),
     ...(order.paidAt ? { paidAt: order.paidAt.toISOString() } : {}),
     ...(order.creditedAt ? { creditedAt: order.creditedAt.toISOString() } : {}),
+    ...(order.closedAt ? { closedAt: order.closedAt.toISOString() } : {}),
   };
 }
 
@@ -191,6 +192,9 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
       if (!deps.methods) {
         return res.status(503).json({ error: 'Payment service is not configured' });
       }
+
+      const service = await getService(req);
+      await service.reconcileExpiredPendingOrdersForUser({ userId });
 
       const { limit, offset } = parsePagination(req.query);
       const result = await deps.methods.listPaymentOrders({

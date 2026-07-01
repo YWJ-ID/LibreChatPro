@@ -751,6 +751,7 @@ export type TPaymentOrder = {
   updatedAt: string;
   paidAt?: string;
   creditedAt?: string;
+  closedAt?: string;
 };
 
 export type TPaymentOrdersQueryParams = {

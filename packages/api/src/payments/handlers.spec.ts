@@ -73,6 +73,7 @@ describe('createPaymentHandlers', () => {
       outTradeNo: expect.stringMatching(/^LC/),
       paymentForm: '<form></form>',
     });
+    expect(methods.listPaymentOrders).not.toHaveBeenCalled();
   });
 
   it('returns 503 when resolved config cannot create a payment provider', async () => {
@@ -91,31 +92,62 @@ describe('createPaymentHandlers', () => {
   });
 
   it('lists only the current user payment orders with pagination', async () => {
-    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({
-      orders: [
-        {
-          _id: 'order1',
-          user: 'user1',
-          provider: 'alipay',
-          outTradeNo: 'LC202606050001',
-          amountCny: 10,
-          credits: 1000000,
-          status: 'credited',
-          createdAt: new Date('2026-06-05T10:00:00.000Z'),
-          updatedAt: new Date('2026-06-05T10:05:00.000Z'),
-          paidAt: new Date('2026-06-05T10:03:00.000Z'),
-          creditedAt: new Date('2026-06-05T10:05:00.000Z'),
-        },
-      ],
-      total: 1,
+    const appConfig = {
+      payments: {
+        enabled: true,
+        packages: [],
+        custom: { minCny: '1.00', maxCny: '5000.00', creditsPerCny: 100000 },
+      },
+    } as AppConfig;
+    const provider: PaymentProvider = {
+      name: 'alipay',
+      createPaymentForm: jest.fn(async () => '<form></form>'),
+      verifyNotify: jest.fn(async () => ({ isValid: false })),
+      queryOrder: jest.fn(async () => ({ isValid: false })),
+    };
+    (methods.listPaymentOrders as jest.Mock)
+      .mockResolvedValueOnce({ orders: [], total: 0 })
+      .mockResolvedValueOnce({
+        orders: [
+          {
+            _id: 'order1',
+            user: 'user1',
+            provider: 'alipay',
+            outTradeNo: 'LC202606050001',
+            amountCny: 10,
+            credits: 1000000,
+            status: 'credited',
+            createdAt: new Date('2026-06-05T10:00:00.000Z'),
+            updatedAt: new Date('2026-06-05T10:05:00.000Z'),
+            paidAt: new Date('2026-06-05T10:03:00.000Z'),
+            creditedAt: new Date('2026-06-05T10:05:00.000Z'),
+            closedAt: new Date('2026-06-05T10:10:00.000Z'),
+          },
+        ],
+        total: 1,
+      });
+    const handlers = createPaymentHandlers({
+      getAppConfig: jest.fn(async () => appConfig),
+      getProvider: jest.fn(() => provider),
+      methods,
     });
-    const handlers = createPaymentHandlers({ methods });
     const req = { query: { limit: '10', offset: '20' }, user: { id: 'user1' } };
     const res = createResponse();
 
     await handlers.listOrders(req, res);
 
-    expect(methods.listPaymentOrders).toHaveBeenCalledWith({
+    expect(methods.listPaymentOrders).toHaveBeenNthCalledWith(1, {
+      filter: {
+        user: 'user1',
+        provider: 'alipay',
+        status: 'pending',
+        createdAt: { $lte: expect.any(Date) },
+      },
+      limit: 20,
+      offset: 0,
+      sort: { createdAt: 1 },
+    });
+    expect(methods.listPaymentOrders).toHaveBeenNthCalledWith(2, {
       filter: { user: 'user1' },
       limit: 10,
       offset: 20,
@@ -135,6 +167,7 @@ describe('createPaymentHandlers', () => {
           updatedAt: '2026-06-05T10:05:00.000Z',
           paidAt: '2026-06-05T10:03:00.000Z',
           creditedAt: '2026-06-05T10:05:00.000Z',
+          closedAt: '2026-06-05T10:10:00.000Z',
         },
       ],
       total: 1,
@@ -152,5 +185,55 @@ describe('createPaymentHandlers', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({ error: 'Authentication required' });
+  });
+
+  // Single-order queries can confirm payment but do not locally close expired unpaid orders.
+  it('does not locally close expired unpaid orders when getting a single order', async () => {
+    (methods.findPaymentOrderById as jest.Mock).mockResolvedValue({
+      _id: 'order1',
+      user: 'user1',
+      provider: 'alipay',
+      outTradeNo: 'LC202607010004',
+      amountCny: 10,
+      credits: 1000000,
+      status: 'pending',
+      createdAt: new Date('2026-07-01T10:00:00.000Z'),
+      updatedAt: new Date('2026-07-01T10:00:00.000Z'),
+    });
+    (methods.updatePaymentOrder as jest.Mock).mockResolvedValue(null);
+    const appConfig = {
+      payments: {
+        enabled: true,
+        packages: [],
+        custom: { minCny: '1.00', maxCny: '5000.00', creditsPerCny: 100000 },
+      },
+    } as AppConfig;
+    const provider: PaymentProvider = {
+      name: 'alipay',
+      createPaymentForm: jest.fn(async () => '<form></form>'),
+      verifyNotify: jest.fn(async () => ({ isValid: false })),
+      queryOrder: jest.fn(async () => ({
+        isValid: true,
+        outTradeNo: 'LC202607010004',
+        amountCny: '10.00',
+        tradeStatus: 'WAIT_BUYER_PAY',
+      })),
+    };
+    const handlers = createPaymentHandlers({
+      getAppConfig: jest.fn(async () => appConfig),
+      getProvider: jest.fn(() => provider),
+      provider,
+      methods,
+    });
+    const req = { params: { orderId: 'order1' }, user: { id: 'user1' } };
+    const res = createResponse();
+
+    await handlers.getOrder(req, res);
+
+    expect(provider.queryOrder).toHaveBeenCalledWith({ outTradeNo: 'LC202607010004' });
+    expect(methods.updatePaymentOrder).not.toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ status: 'closed' }),
+    );
   });
 });
