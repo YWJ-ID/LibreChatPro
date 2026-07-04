@@ -88,8 +88,8 @@ export default defineConfig(({ command }) => ({
       },
       includeAssets: [],
       manifest: {
-        name: 'LibreChat',
-        short_name: 'LibreChat',
+        name: '智造通',
+        short_name: '智造通',
         display: 'standalone',
         background_color: '#000000',
         theme_color: '#009688',
