@@ -168,7 +168,7 @@ export function createPaymentService(deps: PaymentServiceDeps) {
     const paymentForm = await deps.provider.createPaymentForm({
       outTradeNo,
       amountCny: recharge.amountCny.toFixed(2),
-      subject: `LibreChat Credits ${recharge.credits}`,
+      subject: `LibreChat AI 对话积分充值 - ${recharge.credits}积分`,
     });
 
     return { orderId: String(order._id), outTradeNo, paymentForm };

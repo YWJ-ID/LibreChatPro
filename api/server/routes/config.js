@@ -151,6 +151,10 @@ function buildPaymentsStartupConfig(appConfig) {
     enabled: true,
     defaultProvider: payments.defaultProvider ?? 'alipay',
     providers: { alipay: { enabled: Boolean(payments.alipay?.enabled) } },
+    merchantName: payments.merchantName,
+    merchantContact: payments.merchantContact,
+    termsUrl: payments.termsUrl,
+    privacyUrl: payments.privacyUrl,
   };
 }
 

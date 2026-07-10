@@ -110,6 +110,10 @@ function getPaymentPackagesResponse(appConfig?: AppConfig) {
     custom: config.custom,
     defaultProvider: payments?.defaultProvider ?? 'alipay',
     providers: { alipay: { enabled: Boolean(payments?.enabled && payments?.alipay?.enabled) } },
+    ...(payments?.merchantName ? { merchantName: payments.merchantName } : {}),
+    ...(payments?.merchantContact ? { merchantContact: payments.merchantContact } : {}),
+    ...(payments?.termsUrl ? { termsUrl: payments.termsUrl } : {}),
+    ...(payments?.privacyUrl ? { privacyUrl: payments.privacyUrl } : {}),
   };
 }
 
