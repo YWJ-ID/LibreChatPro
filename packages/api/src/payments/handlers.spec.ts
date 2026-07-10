@@ -65,7 +65,7 @@ describe('createPaymentHandlers', () => {
     expect(provider.createPaymentForm).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC/),
       amountCny: '10.00',
-      subject: 'LibreChat Credits 1000000',
+      subject: 'LibreChat AI 对话积分充值 - 1000000积分',
     });
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({

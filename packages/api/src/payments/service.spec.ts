@@ -61,7 +61,7 @@ describe('createPaymentService', () => {
     expect(provider.createPaymentForm).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC\d{14}[A-Z0-9]{6}$/),
       amountCny: '10.00',
-      subject: 'LibreChat Credits 1000000',
+      subject: 'LibreChat AI 对话积分充值 - 1000000积分',
     });
     expect(result).toEqual({
       orderId: 'order1',
