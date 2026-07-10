@@ -1043,6 +1043,10 @@ export type TStartupPaymentsConfig = {
   enabled: boolean;
   defaultProvider: 'alipay';
   providers: { alipay: { enabled: boolean } };
+  merchantName?: string;
+  merchantContact?: string;
+  termsUrl?: string;
+  privacyUrl?: string;
 };
 
 export const turnstileOptionsSchema = z
@@ -1369,6 +1373,10 @@ export const paymentsSchema = z.object({
       creditsPerCny: z.number().int().positive(),
     })
     .optional(),
+  merchantName: z.string().optional(),
+  merchantContact: z.string().optional(),
+  termsUrl: z.string().url().optional(),
+  privacyUrl: z.string().url().optional(),
   alipay: z
     .object({
       enabled: z.boolean().optional().default(false),

@@ -738,6 +738,10 @@ export type TPaymentPackagesResponse = {
   };
   defaultProvider: TPaymentProvider;
   providers: Partial<Record<TPaymentProvider, { enabled: boolean }>>;
+  merchantName?: string;
+  merchantContact?: string;
+  termsUrl?: string;
+  privacyUrl?: string;
 };
 
 export type TPaymentOrder = {
