@@ -1386,5 +1386,16 @@
   "com_nav_balance_recharge": "充值积分",
   "com_nav_balance_recharge_credits": "{{credits}} 积分",
   "com_nav_balance_recharge_submit": "充值",
-  "com_nav_balance_custom_amount": "自定义金额（人民币）"
+  "com_nav_balance_custom_amount": "自定义金额（人民币）",
+  "com_nav_balance_recharge_description": "充值积分，用于 AI 对话和模型调用",
+  "com_nav_balance_recharge_provider": "服务由 {{merchantName}} 提供",
+  "com_nav_balance_recharge_terms": "我已阅读并同意",
+  "com_nav_balance_recharge_terms_link": "《用户协议》",
+  "com_nav_balance_recharge_privacy_link": "《隐私政策》",
+  "com_nav_balance_recharge_confirm_title": "订单确认",
+  "com_nav_balance_recharge_confirm_submit": "确认支付 ¥{{amount}}",
+  "com_nav_balance_recharge_confirm_cancel": "取消",
+  "com_nav_balance_recharge_success": "充值成功，已到账 {{credits}} 积分",
+  "com_nav_balance_recharge_alipay": "支付宝安全支付",
+  "com_nav_balance_recharge_alipay_badge": "支付宝支付"
 }
