@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocalize } from '~/hooks';
+import AlipayIcon from './AlipayIcon';
 
 type OrderConfirmDialogProps = {
   amountCny: number;
@@ -46,6 +47,11 @@ function OrderConfirmDialog({
             {merchantContact && <p className="mt-1">{merchantContact}</p>}
           </div>
         )}
+
+        <div className="mb-4 flex items-center justify-center gap-1.5 text-xs text-text-secondary">
+          <AlipayIcon size={14} />
+          <span>{localize('com_nav_balance_recharge_alipay')}</span>
+        </div>
 
         <div className="flex gap-2">
           <button

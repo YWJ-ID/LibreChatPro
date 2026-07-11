@@ -4,6 +4,7 @@ import { QueryKeys } from 'librechat-data-provider';
 import { useCreatePaymentOrder, useGetPaymentOrder, useGetPaymentPackages } from '~/data-provider';
 import { useLocalize } from '~/hooks';
 import OrderConfirmDialog from './OrderConfirmDialog';
+import AlipayIcon from './AlipayIcon';
 
 const pendingPaymentOrderKey = 'librechat.pendingPaymentOrderId';
 
@@ -97,6 +98,10 @@ function RechargeForm() {
             <p className="mt-1">{localize('com_nav_balance_recharge_provider', { merchantName })}</p>
           )}
           {merchantContact && <p className="mt-0.5">{merchantContact}</p>}
+          <div className="mt-2 flex items-center gap-1.5 border-t border-border-light pt-2 text-text-secondary">
+            <AlipayIcon size={14} />
+            <span>{localize('com_nav_balance_recharge_alipay')}</span>
+          </div>
         </div>
       )}
 

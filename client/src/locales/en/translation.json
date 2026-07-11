@@ -453,6 +453,8 @@
   "com_nav_balance_recharge_confirm_submit": "Confirm Payment ¥{{amount}}",
   "com_nav_balance_recharge_confirm_cancel": "Cancel",
   "com_nav_balance_recharge_success": "Recharge successful! {{credits}} credits added",
+  "com_nav_balance_recharge_alipay": "Secure payment via Alipay",
+  "com_nav_balance_recharge_alipay_badge": "Pay with Alipay",
   "com_nav_balance_refill_amount": "Refill Amount:",
   "com_nav_balance_second": "second",
   "com_nav_balance_seconds": "seconds",
