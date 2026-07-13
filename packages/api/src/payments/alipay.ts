@@ -92,7 +92,7 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
         },
       });
 
-      return { qrCode: response.qr_code ?? response.qrCode };
+      return { qrCode: response.qr_code ?? response.qrCode ?? '' };
     },
     async verifyNotify(payload) {
       if (!config.client.checkNotifySign(payload)) {
