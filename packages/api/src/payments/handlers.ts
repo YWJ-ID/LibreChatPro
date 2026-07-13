@@ -235,7 +235,7 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
         return res.status(404).json({ error: 'Payment order not found' });
       }
 
-      if (!deps.provider || order.status === 'credited') {
+      if (order.status === 'credited') {
         return res.status(200).json(serializePaymentOrder(order));
       }
 
