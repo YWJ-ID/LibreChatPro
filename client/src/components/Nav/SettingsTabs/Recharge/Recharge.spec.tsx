@@ -34,7 +34,7 @@ describe('Recharge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    mockMutateAsync.mockResolvedValue({ orderId: 'order1', outTradeNo: 'LC202605260007', paymentForm: '<form></form>' });
+    mockMutateAsync.mockResolvedValue({ orderId: 'order1', outTradeNo: 'LC202605260007', qrCode: 'https://qr.alipay.com/test' });
     mockUseGetPaymentOrder.mockReturnValue({ data: undefined });
   });
 

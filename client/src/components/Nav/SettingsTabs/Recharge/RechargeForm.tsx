@@ -3,17 +3,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from 'librechat-data-provider';
 import { useCreatePaymentOrder, useGetPaymentOrder, useGetPaymentPackages } from '~/data-provider';
 import { useLocalize } from '~/hooks';
-import OrderConfirmDialog from './OrderConfirmDialog';
 import AlipayIcon from './AlipayIcon';
+import QRCodeDialog from './QRCodeDialog';
 
 const pendingPaymentOrderKey = 'librechat.pendingPaymentOrderId';
-
-function submitPaymentForm(paymentForm: string) {
-  const container = document.createElement('div');
-  container.innerHTML = paymentForm;
-  document.body.appendChild(container);
-  container.querySelector('form')?.submit();
-}
 
 function RechargeForm() {
   const localize = useLocalize();
@@ -21,7 +14,12 @@ function RechargeForm() {
   const [amountCny, setAmountCny] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState(() => localStorage.getItem(pendingPaymentOrderKey) ?? '');
-  const [confirmOrder, setConfirmOrder] = useState<{ packageId?: string; amountCny?: string } | null>(null);
+  const [activeQrPayment, setActiveQrPayment] = useState<{
+    orderId: string;
+    qrCode: string;
+    amountCny: number;
+    credits: number;
+  } | null>(null);
   const packagesQuery = useGetPaymentPackages();
   const paymentOrderQuery = useGetPaymentOrder(pendingOrderId, {
     refetchInterval: (data) => (data?.status === 'credited' || !pendingOrderId ? false : 3000),
@@ -44,50 +42,40 @@ function RechargeForm() {
     queryClient.invalidateQueries([QueryKeys.balance]);
   }, [paymentOrderQuery.data?.status, pendingOrderId, queryClient]);
 
-  const rememberOrder = useCallback((orderId: string) => {
-    localStorage.setItem(pendingPaymentOrderKey, orderId);
-    setPendingOrderId(orderId);
-  }, []);
+  const handleSuccess = useCallback(() => {
+    setActiveQrPayment(null);
+    localStorage.removeItem(pendingPaymentOrderKey);
+    setPendingOrderId('');
+    queryClient.invalidateQueries([QueryKeys.balance]);
+  }, [queryClient]);
 
-  const handleConfirm = useCallback(async () => {
-    if (!confirmOrder) {
-      return;
-    }
+  const placeOrder = useCallback(
+    async (input: { packageId?: string; amountCny?: string }) => {
+      const result = await createOrder.mutateAsync(input);
+      localStorage.setItem(pendingPaymentOrderKey, result.orderId);
+      setPendingOrderId(result.orderId);
 
-    const result = await createOrder.mutateAsync(confirmOrder);
-    rememberOrder(result.orderId);
-    submitPaymentForm(result.paymentForm);
-    setConfirmOrder(null);
-  }, [confirmOrder, createOrder, rememberOrder]);
+      const pkg = input.packageId
+        ? packagesQuery.data?.packages.find((p) => p.id === input.packageId)
+        : null;
+      const amount = pkg ? Number(pkg.amountCny) : Number(input.amountCny ?? 0);
+      const credits = pkg
+        ? pkg.credits
+        : Math.round(Number(input.amountCny ?? 0) * (packagesQuery.data?.custom.creditsPerCny ?? 0));
 
-  const openPackageConfirm = useCallback((packageId: string) => {
-    setConfirmOrder({ packageId });
-  }, []);
-
-  const openCustomConfirm = useCallback(() => {
-    if (!amountCny) {
-      return;
-    }
-    setConfirmOrder({ amountCny });
-  }, [amountCny]);
+      setActiveQrPayment({
+        orderId: result.orderId,
+        qrCode: result.qrCode,
+        amountCny: amount,
+        credits,
+      });
+    },
+    [createOrder, packagesQuery.data],
+  );
 
   if (packagesQuery.isLoading) {
     return <div>{localize('com_ui_loading')}</div>;
   }
-
-  const selectedPackage = confirmOrder?.packageId
-    ? packagesQuery.data?.packages.find((p) => p.id === confirmOrder.packageId)
-    : null;
-  const selectedAmountCny = selectedPackage
-    ? Number(selectedPackage.amountCny)
-    : confirmOrder?.amountCny
-      ? Number(confirmOrder.amountCny)
-      : 0;
-  const selectedCredits = selectedPackage
-    ? selectedPackage.credits
-    : confirmOrder?.amountCny
-      ? Math.round(Number(confirmOrder.amountCny) * (packagesQuery.data?.custom.creditsPerCny ?? 0))
-      : 0;
 
   return (
     <div className="space-y-3">
@@ -111,7 +99,8 @@ function RechargeForm() {
             className="rounded-lg border border-border-medium px-3 py-2 text-left hover:bg-surface-hover"
             key={item.id}
             type="button"
-            onClick={() => openPackageConfirm(item.id)}
+            onClick={() => placeOrder({ packageId: item.id })}
+            disabled={createOrder.isLoading}
           >
             <span className="block font-medium">¥{item.amountCny}</span>
             <span className="text-xs text-text-secondary">
@@ -162,20 +151,19 @@ function RechargeForm() {
         className="rounded-lg bg-green-600 px-3 py-2 text-white disabled:opacity-60"
         type="button"
         disabled={!amountCny || createOrder.isLoading || (Boolean(termsUrl || privacyUrl) && !termsAccepted)}
-        onClick={openCustomConfirm}
+        onClick={() => placeOrder({ amountCny })}
       >
         {localize('com_nav_balance_recharge_submit')}
       </button>
 
-      {confirmOrder && selectedAmountCny > 0 && (
-        <OrderConfirmDialog
-          amountCny={selectedAmountCny}
-          credits={selectedCredits}
-          merchantName={merchantName}
-          merchantContact={merchantContact}
-          onConfirm={handleConfirm}
-          onCancel={() => setConfirmOrder(null)}
-          isProcessing={createOrder.isLoading}
+      {activeQrPayment && (
+        <QRCodeDialog
+          orderId={activeQrPayment.orderId}
+          qrCode={activeQrPayment.qrCode}
+          amountCny={activeQrPayment.amountCny}
+          credits={activeQrPayment.credits}
+          onClose={() => setActiveQrPayment(null)}
+          onSuccess={handleSuccess}
         />
       )}
     </div>
