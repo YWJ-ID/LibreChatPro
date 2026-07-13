@@ -165,13 +165,13 @@ export function createPaymentService(deps: PaymentServiceDeps) {
       packageId: 'packageId' in recharge ? recharge.packageId : undefined,
       customAmountCny: 'customAmountCny' in recharge ? recharge.customAmountCny : undefined,
     });
-    const paymentForm = await deps.provider.createPaymentForm({
+    const qrCodeResult = await deps.provider.createQRCodePayment({
       outTradeNo,
       amountCny: recharge.amountCny.toFixed(2),
       subject: `LibreChat AI 对话积分充值 - ${recharge.credits}积分`,
     });
 
-    return { orderId: String(order._id), outTradeNo, paymentForm };
+    return { orderId: String(order._id), outTradeNo, qrCode: qrCodeResult.qrCode };
   }
 
   async function handleNotify(payload: Record<string, string>) {

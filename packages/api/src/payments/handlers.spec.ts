@@ -47,7 +47,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const getProvider = jest.fn(() => provider);
@@ -62,7 +62,7 @@ describe('createPaymentHandlers', () => {
     await handlers.createOrder(req, res);
 
     expect(getProvider).toHaveBeenCalledWith(appConfig);
-    expect(provider.createPaymentForm).toHaveBeenCalledWith({
+    expect(provider.createQRCodePayment).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC/),
       amountCny: '10.00',
       subject: 'LibreChat AI 对话积分充值 - 1000000积分',
@@ -71,7 +71,7 @@ describe('createPaymentHandlers', () => {
     expect(res.json).toHaveBeenCalledWith({
       orderId: 'order1',
       outTradeNo: expect.stringMatching(/^LC/),
-      paymentForm: '<form></form>',
+      qrCode: 'https://qr.alipay.com/test',
     });
     expect(methods.listPaymentOrders).not.toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({ isValid: false })),
     };
@@ -210,7 +210,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,

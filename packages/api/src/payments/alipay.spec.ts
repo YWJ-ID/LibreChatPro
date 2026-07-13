@@ -2,11 +2,8 @@ import type { AppConfig } from '@librechat/data-schemas';
 import { createAlipayProvider, createAlipayProviderFromConfig } from './alipay';
 
 describe('createAlipayProvider', () => {
-  it('creates page pay form with required Alipay fields', async () => {
-    const pageExecute = jest.fn(async (_method, _returnType, params) => {
-      const bizContent = params.bizContent as { product_code: string };
-      return `<form>${bizContent.product_code}</form>`;
-    });
+  it('creates QR code payment with Alipay trade precreate', async () => {
+    const exec = jest.fn(async () => ({ qr_code: 'https://qr.alipay.com/test123' }));
     const provider = createAlipayProvider({
       appId: 'app-id',
       gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
@@ -17,65 +14,60 @@ describe('createAlipayProvider', () => {
       sellerId: 'seller-id',
       signType: 'RSA2',
       client: {
-        pageExecute,
+        pageExecute: jest.fn(),
         checkNotifySign: jest.fn(() => true),
-        exec: jest.fn(async () => ({ trade_status: 'TRADE_SUCCESS' })),
+        exec,
       },
     });
 
-    const form = await provider.createPaymentForm({
+    const result = await provider.createQRCodePayment({
       outTradeNo: 'LC202605260003',
       amountCny: '10.00',
       subject: 'LibreChat Credits 1000000',
     });
 
-    expect(form).toContain('FAST_INSTANT_TRADE_PAY');
-    expect(pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', {
-      notifyUrl: 'https://example.com/api/payments/alipay/notify',
-      returnUrl: 'https://example.com/payment/return',
+    expect(result).toEqual({ qrCode: 'https://qr.alipay.com/test123' });
+    expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
       bizContent: {
         out_trade_no: 'LC202605260003',
         total_amount: '10.00',
         subject: 'LibreChat Credits 1000000',
-        product_code: 'FAST_INSTANT_TRADE_PAY',
-        timeout_express: '10m',
+        product_code: 'FACE_TO_FACE_PAYMENT',
       },
     });
   });
 
-  it('sets a ten minute timeout when creating page payment forms', async () => {
-    const pageExecute = jest.fn(async () => '<form></form>');
+  it('falls back to camelCase when qr_code is not returned', async () => {
+    const exec = jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/camel' }));
     const provider = createAlipayProvider({
       appId: 'app-id',
       gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
       privateKey: 'private-key',
-      alipayPublicKey: 'alipay-public-key',
+      alipayPublicKey: 'public-key',
       notifyUrl: 'https://example.com/notify',
       returnUrl: 'https://example.com/return',
       sellerId: 'seller-id',
       signType: 'RSA2',
       client: {
-        pageExecute,
+        pageExecute: jest.fn(),
         checkNotifySign: jest.fn(() => true),
-        exec: jest.fn(),
+        exec,
       },
     });
 
-    await provider.createPaymentForm({
+    const result = await provider.createQRCodePayment({
       outTradeNo: 'LC202607010001',
       amountCny: '10.00',
       subject: 'LibreChat Credits 1000000',
     });
 
-    expect(pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', {
-      notifyUrl: 'https://example.com/notify',
-      returnUrl: 'https://example.com/return',
+    expect(result).toEqual({ qrCode: 'https://qr.alipay.com/camel' });
+    expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
       bizContent: {
         out_trade_no: 'LC202607010001',
         total_amount: '10.00',
         subject: 'LibreChat Credits 1000000',
-        product_code: 'FAST_INSTANT_TRADE_PAY',
-        timeout_express: '10m',
+        product_code: 'FACE_TO_FACE_PAYMENT',
       },
     });
   });
@@ -201,10 +193,11 @@ describe('createAlipayProvider', () => {
 
   it('creates provider from app config and server-side private key file', async () => {
     const readFile = jest.fn((path: string) => `${path}-contents`);
+    const exec = jest.fn(async () => ({ qr_code: 'https://qr.alipay.com/test' }));
     const sdk = {
-      pageExecute: jest.fn(() => '<form>sdk</form>'),
+      pageExecute: jest.fn(),
       checkNotifySign: jest.fn(() => true),
-      exec: jest.fn(async () => ({ trade_status: 'TRADE_SUCCESS' })),
+      exec,
     };
     const createClient = jest.fn(() => sdk);
     const appConfig = {
@@ -224,7 +217,7 @@ describe('createAlipayProvider', () => {
     } as AppConfig;
 
     const provider = createAlipayProviderFromConfig(appConfig, { createClient, readFile });
-    await provider?.createPaymentForm({
+    await provider?.createQRCodePayment({
       outTradeNo: 'LC202605260006',
       amountCny: '10.00',
       subject: 'LibreChat Credits 1000000',
@@ -238,7 +231,7 @@ describe('createAlipayProvider', () => {
       alipayPublicKey: 'public-key',
       signType: 'RSA2',
     });
-    expect(sdk.pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', expect.any(Object));
+    expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', expect.any(Object));
   });
 
   it('resolves Alipay runtime config from environment placeholders', async () => {
@@ -252,10 +245,11 @@ describe('createAlipayProvider', () => {
     process.env.ALIPAY_SELLER_ID = 'env-seller-id';
 
     const readFile = jest.fn((path: string) => `${path}-contents`);
+    const exec = jest.fn(async () => ({ qr_code: 'https://qr.alipay.com/env-test' }));
     const sdk = {
-      pageExecute: jest.fn(() => '<form>sdk</form>'),
+      pageExecute: jest.fn(),
       checkNotifySign: jest.fn(() => true),
-      exec: jest.fn(async () => ({ trade_status: 'TRADE_SUCCESS' })),
+      exec,
     };
     const createClient = jest.fn(() => sdk);
     const appConfig = {
@@ -276,12 +270,13 @@ describe('createAlipayProvider', () => {
 
     try {
       const provider = createAlipayProviderFromConfig(appConfig, { createClient, readFile });
-      await provider?.createPaymentForm({
+      const result = await provider?.createQRCodePayment({
         outTradeNo: 'LC202605260007',
         amountCny: '10.00',
         subject: 'LibreChat Credits 1000000',
       });
 
+      expect(result).toEqual({ qrCode: 'https://qr.alipay.com/env-test' });
       expect(readFile).toHaveBeenCalledWith('env-private-key.pem', 'utf8');
       expect(createClient).toHaveBeenCalledWith({
         appId: 'env-app-id',
@@ -290,15 +285,12 @@ describe('createAlipayProvider', () => {
         alipayPublicKey: 'env-public-key',
         signType: 'RSA2',
       });
-      expect(sdk.pageExecute).toHaveBeenCalledWith('alipay.trade.page.pay', 'POST', {
-        notifyUrl: 'https://env.example.com/api/payments/alipay/notify',
-        returnUrl: 'https://env.example.com/payment/return',
+      expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
         bizContent: {
           out_trade_no: 'LC202605260007',
           total_amount: '10.00',
           subject: 'LibreChat Credits 1000000',
-          product_code: 'FAST_INSTANT_TRADE_PAY',
-          timeout_express: '10m',
+          product_code: 'FACE_TO_FACE_PAYMENT',
         },
       });
     } finally {

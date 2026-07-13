@@ -43,7 +43,7 @@ describe('createPaymentService', () => {
     const { createdOrders, methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async ({ outTradeNo }) => `<form>${outTradeNo}</form>`),
+      createQRCodePayment: jest.fn(async ({ outTradeNo }) => ({ qrCode: `https://qr.alipay.com/${outTradeNo}` })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({ config, provider, methods });
@@ -58,7 +58,7 @@ describe('createPaymentService', () => {
       status: 'pending',
       packageId: 'cny_10',
     });
-    expect(provider.createPaymentForm).toHaveBeenCalledWith({
+    expect(provider.createQRCodePayment).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC\d{14}[A-Z0-9]{6}$/),
       amountCny: '10.00',
       subject: 'LibreChat AI 对话积分充值 - 1000000积分',
@@ -66,7 +66,7 @@ describe('createPaymentService', () => {
     expect(result).toEqual({
       orderId: 'order1',
       outTradeNo: createdOrders[0].outTradeNo,
-      paymentForm: expect.stringContaining('<form>'),
+      qrCode: expect.stringContaining('https://qr.alipay.com/'),
     });
   });
 
@@ -74,7 +74,7 @@ describe('createPaymentService', () => {
     const { createdOrders, methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async ({ amountCny }) => `<form>${amountCny}</form>`),
+      createQRCodePayment: jest.fn(async ({ amountCny }) => ({ qrCode: `https://qr.alipay.com/${amountCny}` })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({ config, provider, methods });
@@ -89,14 +89,14 @@ describe('createPaymentService', () => {
       status: 'pending',
       customAmountCny: 12.34,
     });
-    expect(result.paymentForm).toContain('12.34');
+    expect(result.qrCode).toContain('12.34');
   });
 
   it('rejects order creation when payments are disabled', async () => {
     const { methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({
@@ -129,7 +129,7 @@ describe('createPaymentService', () => {
     (methods.listPaymentOrders as jest.Mock).mockResolvedValue({ orders: [expiredOrder], total: 1 });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,
@@ -197,7 +197,7 @@ describe('createPaymentService', () => {
     });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,
@@ -254,7 +254,7 @@ describe('createPaymentService', () => {
     (methods.listPaymentOrders as jest.Mock).mockResolvedValue({ orders: [expiredOrder], total: 1 });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => {
         throw new Error('Alipay unavailable');
