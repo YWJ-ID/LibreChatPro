@@ -78,7 +78,12 @@ function RechargeForm() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="relative space-y-3">
+      {createOrder.isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/10">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-border-xheavy border-t-green-500" />
+        </div>
+      )}
       {hasMerchantInfo && (
         <div className="rounded-md border border-border-medium bg-surface-tertiary px-3 py-2 text-xs text-text-secondary">
           <p>{localize('com_nav_balance_recharge_description')}</p>

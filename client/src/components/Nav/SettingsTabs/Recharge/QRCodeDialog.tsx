@@ -90,13 +90,19 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
           isSuccess ? 'scale-105' : ''
         }`}
       >
+        {/* Loading overlay */}
+        {cancelOrder.isLoading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/10">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-border-xheavy border-t-green-500" />
+          </div>
+        )}
+
         {/* Close (X) button */}
-        {!isSuccess && (
+        {!isSuccess && !cancelOrder.isLoading && (
           <button
             type="button"
             className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary"
             onClick={handleCancel}
-            disabled={cancelOrder.isLoading}
             aria-label={localize('com_nav_balance_qrcode_close')}
           >
             <svg
