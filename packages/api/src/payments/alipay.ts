@@ -12,6 +12,8 @@ type AlipayQueryResult = Partial<Pick<AlipaySdkCommonResult, 'code' | 'msg'>> & 
   tradeNo?: string;
   totalAmount?: string;
   tradeStatus?: string;
+  qr_code?: string;
+  qrCode?: string;
 };
 
 type AlipayNotifyPayload = Record<string, string>;
@@ -80,18 +82,17 @@ function getConfiguredAlipay(appConfig?: AppConfig): RequiredAlipayConfig | null
 export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvider {
   return {
     name: 'alipay',
-    async createPaymentForm(input) {
-      return config.client.pageExecute('alipay.trade.page.pay', 'POST', {
-        notifyUrl: config.notifyUrl,
-        returnUrl: config.returnUrl,
+    async createQRCodePayment(input) {
+      const response = await config.client.exec('alipay.trade.precreate', {
         bizContent: {
           out_trade_no: input.outTradeNo,
           total_amount: input.amountCny,
           subject: input.subject,
-          product_code: 'FAST_INSTANT_TRADE_PAY',
-          timeout_express: '10m',
+          product_code: 'FACE_TO_FACE_PAYMENT',
         },
       });
+
+      return { qrCode: response.qr_code ?? response.qrCode };
     },
     async verifyNotify(payload) {
       if (!config.client.checkNotifySign(payload)) {

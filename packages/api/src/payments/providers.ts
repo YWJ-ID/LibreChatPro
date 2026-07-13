@@ -19,7 +19,7 @@ export type VerifiedPaymentNotification = {
 
 export interface PaymentProvider {
   name: PaymentProviderName;
-  createPaymentForm(input: PaymentFormInput): Promise<string>;
+  createQRCodePayment(input: PaymentFormInput): Promise<{ qrCode: string }>;
   verifyNotify(input: Record<string, string>): Promise<VerifiedPaymentNotification>;
   queryOrder?(input: { outTradeNo: string }): Promise<VerifiedPaymentNotification>;
 }
