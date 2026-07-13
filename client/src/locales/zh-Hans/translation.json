@@ -1397,5 +1397,12 @@
   "com_nav_balance_recharge_confirm_cancel": "取消",
   "com_nav_balance_recharge_success": "充值成功，已到账 {{credits}} 积分",
   "com_nav_balance_recharge_alipay": "支付宝安全支付",
-  "com_nav_balance_recharge_alipay_badge": "支付宝支付"
+  "com_nav_balance_recharge_alipay_badge": "支付宝支付",
+  "com_nav_balance_qrcode_title": "扫码支付",
+  "com_nav_balance_qrcode_hint": "打开支付宝扫码支付",
+  "com_nav_balance_qrcode_status_pending": "等待扫码...",
+  "com_nav_balance_qrcode_status_paid": "已收到付款，正在到账...",
+  "com_nav_balance_qrcode_status_credited": "支付成功！",
+  "com_nav_balance_qrcode_status_expired": "二维码已过期，请重新操作",
+  "com_nav_balance_qrcode_close": "关闭"
 }
