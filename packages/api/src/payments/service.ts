@@ -217,5 +217,22 @@ export function createPaymentService(deps: PaymentServiceDeps) {
     });
   }
 
-  return { createOrder, handleNotify, queryOrderAndCreditIfNeeded, reconcileExpiredPendingOrdersForUser };
+  async function cancelOrder(input: { orderId: string; userId: string }) {
+    const order = await deps.methods.findPaymentOrderById(input.orderId);
+    if (!order || String(order.user) !== input.userId) {
+      throw new Error('Payment order not found');
+    }
+    if (order.status !== 'pending') {
+      throw new Error('Only pending orders can be cancelled');
+    }
+
+    const closed = await deps.methods.updatePaymentOrder(
+      { _id: order._id, user: input.userId, status: 'pending' },
+      { status: 'closed', closedAt: new Date() },
+    );
+
+    return closed ?? order;
+  }
+
+  return { createOrder, handleNotify, queryOrderAndCreditIfNeeded, reconcileExpiredPendingOrdersForUser, cancelOrder };
 }

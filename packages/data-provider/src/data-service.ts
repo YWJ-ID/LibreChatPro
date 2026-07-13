@@ -171,6 +171,10 @@ export function getPaymentOrder(orderId: string): Promise<t.TPaymentOrder> {
   return request.get(endpoints.paymentOrderById(orderId));
 }
 
+export function cancelPaymentOrder(orderId: string): Promise<t.TPaymentOrder> {
+  return request.post(endpoints.cancelPaymentOrder(orderId));
+}
+
 export const updateTokenCount = (text: string) => {
   return request.post(endpoints.tokenizer(), { arg: text });
 };

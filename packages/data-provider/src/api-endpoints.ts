@@ -57,6 +57,9 @@ export const paymentOrders = (params?: q.PaymentOrdersListParams) =>
 export const paymentOrderById = (orderId: string) =>
   `${paymentOrders()}/${encodeURIComponent(orderId)}`;
 
+export const cancelPaymentOrder = (orderId: string) =>
+  `${paymentOrderById(orderId)}/cancel`;
+
 export const paymentAlipayNotify = () => `${paymentsRoot}/alipay/notify`;
 
 export const userPlugins = () => `${BASE_URL}/api/user/plugins`;

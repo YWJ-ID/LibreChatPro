@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useGetPaymentOrder } from '~/data-provider';
+import { useGetPaymentOrder, useCancelPaymentOrder } from '~/data-provider';
 import { useLocalize } from '~/hooks';
 import AlipayIcon from './AlipayIcon';
 
@@ -48,6 +48,7 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
   const { data: order } = useGetPaymentOrder(orderId, {
     refetchInterval: (data) => (data?.status === 'credited' || !orderId ? false : 3000),
   });
+  const cancelOrder = useCancelPaymentOrder();
 
   useEffect(() => {
     if (order?.status === 'paid') {
@@ -63,9 +64,17 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
     }
   }, [order?.status, onSuccess]);
 
+  const handleCancel = useCallback(() => {
+    cancelOrder.mutate(orderId, {
+      onSuccess: onClose,
+      onError: onClose,
+    });
+  }, [cancelOrder, orderId, onClose]);
+
   const status = order?.status ?? 'pending';
   const isSuccess = status === 'credited';
   const isPaid = status === 'paid';
+  const isPending = status === 'pending';
 
   const statusKey =
     status === 'paid'
@@ -77,10 +86,31 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
       <div
-        className={`w-full max-w-sm rounded-lg bg-surface-primary p-6 shadow-xl transition-all duration-500 ${
+        className={`relative w-full max-w-sm rounded-lg bg-surface-primary p-6 shadow-xl transition-all duration-500 ${
           isSuccess ? 'scale-105' : ''
         }`}
       >
+        {/* Close (X) button */}
+        {!isSuccess && (
+          <button
+            type="button"
+            className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+            onClick={handleCancel}
+            disabled={cancelOrder.isLoading}
+            aria-label={localize('com_nav_balance_qrcode_close')}
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
         <h3 className="mb-4 text-center text-lg font-semibold text-text-primary">
           {localize('com_nav_balance_qrcode_title')}
         </h3>
@@ -136,17 +166,6 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
               {localize(statusKey)}
             </span>
           </div>
-        )}
-
-        {/* Close button: hidden on success, auto-closes */}
-        {!isSuccess && (
-          <button
-            type="button"
-            className="w-full rounded-lg border border-border-light px-3 py-2 text-sm text-text-primary hover:bg-surface-hover"
-            onClick={onClose}
-          >
-            {localize('com_nav_balance_qrcode_close')}
-          </button>
         )}
       </div>
     </div>

@@ -248,6 +248,28 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
     }
   }
 
+  async function cancelOrder(req: PaymentRequest<unknown, { orderId: string }>, res: Response) {
+    try {
+      const userId = getUserId(req);
+      if (!userId) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const service = await getService(req);
+      const closed = await service.cancelOrder({ orderId: req.params.orderId, userId });
+      return res.status(200).json(serializePaymentOrder(closed));
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Only pending orders can be cancelled') {
+        return res.status(400).json({ error: error.message });
+      }
+      if (error instanceof Error && error.message === 'Payment order not found') {
+        return res.status(404).json({ error: error.message });
+      }
+      logger.error('[payments] cancelOrder error:', error);
+      return res.status(500).json({ error: 'Failed to cancel payment order' });
+    }
+  }
+
   async function handleAlipayNotify(req: Request, res: Response) {
     try {
       const service = await getService(req as PaymentRequest);
@@ -258,5 +280,5 @@ export function createPaymentHandlers(deps: PaymentHandlersDeps = {}) {
     }
   }
 
-  return { getPackages, createOrder, listOrders, getOrder, handleAlipayNotify };
+  return { getPackages, createOrder, listOrders, getOrder, cancelOrder, handleAlipayNotify };
 }
