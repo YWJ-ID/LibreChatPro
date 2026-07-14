@@ -84,7 +84,7 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
         : 'com_nav_balance_qrcode_status_pending';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
       <div
         className={`relative w-full max-w-sm rounded-lg bg-surface-primary p-6 shadow-xl transition-all duration-500 ${
           isSuccess ? 'scale-105' : ''

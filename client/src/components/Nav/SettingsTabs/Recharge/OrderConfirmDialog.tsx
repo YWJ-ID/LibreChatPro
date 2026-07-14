@@ -24,7 +24,7 @@ function OrderConfirmDialog({
   const localize = useLocalize();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
       <div className="w-full max-w-md rounded-lg bg-surface-primary p-6 shadow-xl">
         <h3 className="mb-4 text-lg font-semibold text-text-primary">
           {localize('com_nav_balance_recharge_confirm_title')}
