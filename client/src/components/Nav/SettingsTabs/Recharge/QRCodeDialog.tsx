@@ -48,6 +48,13 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
   const [showSuccess, setShowSuccess] = useState(false);
   const { data: order } = useGetPaymentOrder(orderId, {
     refetchInterval: (data) => (data?.status === 'credited' || !orderId ? false : 3000),
+    retry: (count, error: unknown) => {
+      if (count >= 5) {
+        return false;
+      }
+      return true;
+    },
+    retryDelay: 1000,
   });
   const cancelOrder = useCancelPaymentOrder();
 
