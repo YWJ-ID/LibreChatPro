@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { useGetPaymentOrder, useCancelPaymentOrder } from '~/data-provider';
 import { useLocalize } from '~/hooks';
@@ -83,7 +84,7 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
         ? 'com_nav_balance_qrcode_status_credited'
         : 'com_nav_balance_qrcode_status_pending';
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
       <div
         className={`relative w-full max-w-sm rounded-lg bg-surface-primary p-6 shadow-xl transition-all duration-500 ${
@@ -167,7 +168,8 @@ function QRCodeDialog({ orderId, qrCode, amountCny, credits, onClose, onSuccess 
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
