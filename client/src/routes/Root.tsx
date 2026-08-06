@@ -59,10 +59,6 @@ export default function Root() {
     logout('/login?redirect=false');
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
     <SetConvoProvider>
       <FileMapContext.Provider value={fileMap}>

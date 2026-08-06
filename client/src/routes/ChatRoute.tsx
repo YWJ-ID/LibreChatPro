@@ -193,7 +193,7 @@ export default function ChatRoute() {
     assistantListMap,
   ]);
 
-  if (endpointsQuery.isLoading || modelsQuery.isLoading) {
+  if (isAuthenticated && (endpointsQuery.isLoading || modelsQuery.isLoading)) {
     return (
       <div className="flex h-screen items-center justify-center" aria-live="polite" role="status">
         <Spinner className="text-text-primary" />
@@ -202,7 +202,11 @@ export default function ChatRoute() {
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <ToolCallsMapProvider conversationId={Constants.NEW_CONVO}>
+        <ChatView index={index} />
+      </ToolCallsMapProvider>
+    );
   }
 
   // if not a conversation

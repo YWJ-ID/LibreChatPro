@@ -15,7 +15,6 @@ import {
   SystemRoles,
   setTokenHeader,
   isSystemRoleName,
-  buildLoginRedirectUrl,
 } from 'librechat-data-provider';
 import type * as t from 'librechat-data-provider';
 import type { ReactNode } from 'react';
@@ -114,8 +113,6 @@ const AuthContextProvider = ({
       const resError = error as TResError;
       doSetError(resError.message);
       // Preserve a valid redirect_to across login failures so the deep link survives retries.
-      // Cannot use buildLoginRedirectUrl() here — it reads the current pathname (already /login)
-      // and would return plain /login, dropping the redirect_to destination.
       const redirectTo = new URLSearchParams(window.location.search).get('redirect_to');
       const loginPath =
         redirectTo && isSafeRedirect(redirectTo)
@@ -202,20 +199,12 @@ const AuthContextProvider = ({
           return;
         }
         console.log('Token is not present. User is not authenticated.');
-        if (authConfig?.test === true) {
-          return;
-        }
-        navigate(buildLoginRedirectUrl());
       },
       onError: (error) => {
         if (isExternalRedirectRef.current) {
           return;
         }
         console.log('refreshToken mutation error:', error);
-        if (authConfig?.test === true) {
-          return;
-        }
-        navigate(buildLoginRedirectUrl());
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deps are stable at mount; adding refreshToken causes infinite re-fire
@@ -229,7 +218,7 @@ const AuthContextProvider = ({
       setUser(userQuery.data);
     } else if (userQuery.isError) {
       doSetError((userQuery.error as Error).message);
-      navigate(buildLoginRedirectUrl(), { replace: true });
+      setIsAuthenticated(false);
     }
     if (error != null && error && isAuthenticated) {
       doSetError(undefined);
