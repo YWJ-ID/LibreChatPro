@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
   Login,
   VerifyEmail,
@@ -42,6 +42,20 @@ const loadSkillsView = () =>
     Component: m.default,
   }));
 
+function LegacyAuthRedirect({ step }: { step: string }) {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const allowedParams = ['token', 'userId', 'email'];
+  const nextParams = new URLSearchParams({ auth: step });
+  allowedParams.forEach((key) => {
+    const value = params.get(key);
+    if (value) {
+      nextParams.set(key, value);
+    }
+  });
+  return <Navigate to={`/c/new?${nextParams.toString()}`} replace={true} />;
+}
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -73,21 +87,21 @@ export const router = createBrowserRouter(
       children: [
         {
           path: 'register',
-          element: <Navigate to="/c/new?auth=register" replace={true} />,
+          element: <LegacyAuthRedirect step="register" />,
         },
         {
           path: 'forgot-password',
-          element: <Navigate to="/c/new?auth=forgot-password" replace={true} />,
+          element: <LegacyAuthRedirect step="forgot-password" />,
         },
         {
           path: 'reset-password',
-          element: <Navigate to="/c/new?auth=reset-password" replace={true} />,
+          element: <LegacyAuthRedirect step="reset-password" />,
         },
       ],
     },
     {
       path: 'verify',
-      element: <Navigate to="/c/new?auth=verify-email" replace={true} />,
+      element: <LegacyAuthRedirect step="verify-email" />,
       errorElement: <RouteErrorBoundary />,
     },
     {
