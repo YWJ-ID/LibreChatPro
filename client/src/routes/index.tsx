@@ -73,21 +73,21 @@ export const router = createBrowserRouter(
       children: [
         {
           path: 'register',
-          element: <Registration />,
+          element: <Navigate to="/c/new?auth=register" replace={true} />,
         },
         {
           path: 'forgot-password',
-          element: <RequestPasswordReset />,
+          element: <Navigate to="/c/new?auth=forgot-password" replace={true} />,
         },
         {
           path: 'reset-password',
-          element: <ResetPassword />,
+          element: <Navigate to="/c/new?auth=reset-password" replace={true} />,
         },
       ],
     },
     {
       path: 'verify',
-      element: <VerifyEmail />,
+      element: <Navigate to="/c/new?auth=verify-email" replace={true} />,
       errorElement: <RouteErrorBoundary />,
     },
     {
