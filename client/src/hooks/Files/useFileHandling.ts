@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useMemo, useState } from 'react';
 import { v4 } from 'uuid';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { useToastContext } from '@librechat/client';
@@ -19,7 +19,7 @@ import type { TConversation } from 'librechat-data-provider';
 import { logger, validateFiles, cachePreview, getCachedPreview, removePreviewEntry } from '~/utils';
 import { useGetFileConfig, useUploadFileMutation } from '~/data-provider';
 import useLocalize, { TranslationKeys } from '~/hooks/useLocalize';
-import { useAuthContext } from '~/hooks/AuthContext';
+import { AuthContext } from '~/hooks/AuthContext';
 import { useAuthModal } from '~/components/Auth/AuthModalContext';
 import { useDelayedUploadToast } from './useDelayedUploadToast';
 import { processFileForUpload } from '~/utils/heicConverter';
@@ -49,7 +49,9 @@ const noop = () => {};
 
 const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: FileHandlingState) => {
   const localize = useLocalize();
-  const { isAuthenticated } = useAuthContext();
+  const authContext = useContext(AuthContext);
+  const isAuthenticated = authContext?.isAuthenticated ?? false;
+  const hasAuthProvider = authContext != null;
   const { openAuthModal } = useAuthModal();
   const queryClient = useQueryClient();
   const { showToast } = useToastContext();
@@ -190,7 +192,7 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
   );
 
   const startUpload = async (extendedFile: ExtendedFile) => {
-    if (!isAuthenticated) {
+    if (hasAuthProvider && !isAuthenticated) {
       openAuthModal();
       return;
     }
@@ -294,7 +296,7 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
   };
 
   const handleFiles = async (_files: FileList | File[], _toolResource?: string) => {
-    if (!isAuthenticated) {
+    if (hasAuthProvider && !isAuthenticated) {
       openAuthModal();
       return;
     }

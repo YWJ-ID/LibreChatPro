@@ -126,6 +126,17 @@ const AuthContextProvider = ({
     onError: (error: TResError | unknown) => {
       const resError = error as TResError;
       doSetError(resError.message);
+      if (loginRedirectRef.current === null) {
+        loginRedirectRef.current = undefined;
+        return;
+      }
+      const redirectTo = new URLSearchParams(window.location.search).get('redirect_to');
+      const loginPath =
+        redirectTo && isSafeRedirect(redirectTo)
+          ? `/login?redirect_to=${encodeURIComponent(redirectTo)}`
+          : '/login';
+      loginRedirectRef.current = undefined;
+      navigate(loginPath, { replace: true });
     },
   });
   const logoutUser = useLogoutUserMutation({

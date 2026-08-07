@@ -20,16 +20,19 @@ function SocialButton({ id, enabled, serverDomain, oauthPath, Icon, label }) {
 
   return (
     <div className="mt-2 flex gap-x-2">
-      <button
-        type="button"
+      <a
         aria-label={`${label}`}
         className="flex w-full items-center space-x-3 rounded-2xl border border-border-light bg-surface-primary px-5 py-3 text-text-primary transition-colors duration-200 hover:bg-surface-tertiary"
-        onClick={handleClick}
+        href={`${serverDomain}/oauth/${oauthPath}`}
+        onClick={(event) => {
+          event.preventDefault();
+          handleClick();
+        }}
         data-testid={id}
       >
         <Icon />
         <p>{label}</p>
-      </button>
+      </a>
     </div>
   );
 }
