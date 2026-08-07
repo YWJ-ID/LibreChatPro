@@ -37,7 +37,7 @@ const TwoFactorScreen: React.FC<TwoFactorScreenProps> = React.memo(({ tempToken 
   const { mutate: verifyTempMutate } = useVerifyTwoFactorTempMutation({
     onSuccess: (result) => {
       if (result.token != null && result.token !== '') {
-        completeTwoFactor(result);
+        completeTwoFactor(result, { redirect: null });
         onComplete?.();
       }
     },
