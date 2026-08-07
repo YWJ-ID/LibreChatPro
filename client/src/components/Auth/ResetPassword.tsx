@@ -8,7 +8,12 @@ import type { TLoginLayoutContext } from '~/common';
 import { useLocalize } from '~/hooks';
 import { useGetStartupConfig } from '~/data-provider';
 
-function ResetPassword() {
+type ResetPasswordProps = {
+  token?: string;
+  userId?: string;
+};
+
+function ResetPassword({ token: tokenProp, userId: userIdProp }: ResetPasswordProps = {}) {
   const localize = useLocalize();
   const {
     register,
@@ -19,6 +24,8 @@ function ResetPassword() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const password = watch('password');
+  const token = tokenProp ?? params.get('token') ?? '';
+  const userId = userIdProp ?? params.get('userId') ?? '';
   const resetPassword = useResetPasswordMutation();
   const outletContext = useOutletContext<TLoginLayoutContext | undefined>();
   const startupQuery = useGetStartupConfig();
@@ -71,13 +78,13 @@ function ResetPassword() {
           <input
             type="hidden"
             id="token"
-            value={params.get('token') ?? ''}
+            value={token}
             {...register('token', { required: 'Unable to process: No valid reset token' })}
           />
           <input
             type="hidden"
             id="userId"
-            value={params.get('userId') ?? ''}
+            value={userId}
             {...register('userId', { required: 'Unable to process: No valid user id' })}
           />
           <input

@@ -4,7 +4,12 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useVerifyEmailMutation, useResendVerificationEmail } from '~/data-provider';
 import { useLocalize } from '~/hooks';
 
-function RequestPasswordReset() {
+type VerifyEmailProps = {
+  token?: string;
+  email?: string;
+};
+
+function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmailProps = {}) {
   const navigate = useNavigate();
   const localize = useLocalize();
   const [params] = useSearchParams();
@@ -13,8 +18,8 @@ function RequestPasswordReset() {
   const [headerText, setHeaderText] = useState<string>('');
   const [showResendLink, setShowResendLink] = useState<boolean>(false);
   const [verificationStatus, setVerificationStatus] = useState<boolean>(false);
-  const token = useMemo(() => params.get('token') || '', [params]);
-  const email = useMemo(() => params.get('email') || '', [params]);
+  const token = useMemo(() => tokenProp ?? params.get('token') ?? '', [tokenProp, params]);
+  const email = useMemo(() => emailProp ?? params.get('email') ?? '', [emailProp, params]);
 
   const countdownRedirect = useCallback(() => {
     setCountdown(3);

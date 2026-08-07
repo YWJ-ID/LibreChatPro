@@ -16,7 +16,7 @@ export default function AuthModal() {
   const localize = useLocalize();
   const { data: startupConfig } = useGetStartupConfig();
   const { error, setError, login: authenticate, isAuthenticated, twoFATempToken } = useAuthContext();
-  const { isOpen, step, closeAuthModal, setAuthStep } = useAuthModal();
+  const { isOpen, step, params, closeAuthModal, setAuthStep } = useAuthModal();
 
   useEffect(() => {
     if (twoFATempToken) {
@@ -88,8 +88,12 @@ export default function AuthModal() {
           <TwoFactorScreen tempToken={twoFATempToken} onComplete={closeAuthModal} />
         )}
         {step === 'forgot-password' && <RequestPasswordReset />}
-        {step === 'reset-password' && <ResetPassword />}
-        {step === 'verify-email' && <VerifyEmail />}
+        {step === 'reset-password' && (
+          <ResetPassword token={params.get('token') ?? ''} userId={params.get('userId') ?? ''} />
+        )}
+        {step === 'verify-email' && (
+          <VerifyEmail token={params.get('token') ?? ''} email={params.get('email') ?? ''} />
+        )}
         {step === 'login' && startupConfig.registrationEnabled && (
           <button
             type="button"

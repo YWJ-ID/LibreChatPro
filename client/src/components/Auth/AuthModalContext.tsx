@@ -23,6 +23,7 @@ const authSteps = new Set<AuthModalStep>([
 type AuthModalContextValue = {
   isOpen: boolean;
   step: AuthModalStep;
+  params: URLSearchParams;
   openAuthModal: (step?: AuthModalStep) => void;
   closeAuthModal: () => void;
   setAuthStep: (step: AuthModalStep) => void;
@@ -33,6 +34,7 @@ const AuthModalContext = createContext<AuthModalContextValue | undefined>(undefi
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [authParams, setAuthParams] = useState(() => new URLSearchParams(searchParams));
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<AuthModalStep>('login');
 
@@ -44,6 +46,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     if (authSteps.has(auth as AuthModalStep)) {
       setStep(auth as AuthModalStep);
       setIsOpen(true);
+      setAuthParams(new URLSearchParams(searchParams));
     }
 
     const sensitiveParams = ['token', 'userId', 'tempToken'];
@@ -78,8 +81,8 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   }, [searchParams, setSearchParams]);
 
   const value = useMemo(
-    () => ({ isOpen, step, openAuthModal, closeAuthModal, setAuthStep }),
-    [isOpen, step, openAuthModal, closeAuthModal, setAuthStep],
+    () => ({ isOpen, step, params: authParams, openAuthModal, closeAuthModal, setAuthStep }),
+    [isOpen, step, authParams, openAuthModal, closeAuthModal, setAuthStep],
   );
 
   return <AuthModalContext.Provider value={value}>{children}</AuthModalContext.Provider>;
