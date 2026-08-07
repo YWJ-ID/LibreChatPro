@@ -65,6 +65,7 @@ export default function useQueryParams({
   const modularChat = useRecoilValue(store.modularChat);
   const availableTools = useRecoilValue(store.availableTools);
   const { submitMessage } = useSubmitMessage();
+  const { isAuthenticated } = useAuthContext();
 
   const queryClient = useQueryClient();
   const { conversation, newConversation } = useChatContext();
@@ -207,7 +208,12 @@ export default function useQueryParams({
    * Has internal guards to ensure it only executes once regardless of how many times it's called.
    */
   const processSubmission = useCallback(() => {
-    if (submissionHandledRef.current || !pendingSubmitRef.current || !promptTextRef.current) {
+    if (
+      submissionHandledRef.current ||
+      !pendingSubmitRef.current ||
+      !promptTextRef.current ||
+      !isAuthenticated
+    ) {
       return;
     }
 
@@ -224,7 +230,7 @@ export default function useQueryParams({
     })();
 
     setSearchParams(new URLSearchParams(), { replace: true });
-  }, [methods, submitMessage, setSearchParams]);
+  }, [methods, submitMessage, setSearchParams, isAuthenticated]);
 
   useEffect(() => {
     const processQueryParams = () => {
@@ -267,7 +273,7 @@ export default function useQueryParams({
       const hasSettings = Object.keys(validSettings).length > 0;
 
       const autoSubmitAllowed = startupConfig.interface?.autoSubmitFromUrl !== false;
-      const willAutoSubmit = shouldAutoSubmit && autoSubmitAllowed;
+      const willAutoSubmit = isAuthenticated && shouldAutoSubmit && autoSubmitAllowed;
 
       if (!willAutoSubmit) {
         submissionHandledRef.current = true;
@@ -381,7 +387,6 @@ export default function useQueryParams({
     }
   }, [conversation, processSubmission, areSettingsApplied]);
 
-  const { isAuthenticated } = useAuthContext();
   const agentsMap = useAgentsMap({ isAuthenticated });
   useEffect(() => {
     if (urlAgent) {

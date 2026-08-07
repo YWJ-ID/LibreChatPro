@@ -104,7 +104,7 @@ export const router = createBrowserRouter(
             },
             {
               path: 'login/2fa',
-              element: <TwoFactorScreen />,
+              element: <Login />,
             },
           ],
         },

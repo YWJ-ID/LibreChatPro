@@ -54,19 +54,18 @@ const Registration: React.FC<RegistrationProps> = ({ inline = false, onComplete 
     onSuccess: () => {
       setIsSubmitting(false);
       setCountdown(3);
-      if (inline && onComplete) {
-        onComplete();
-        return;
-      }
       const timer = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {
             clearInterval(timer);
-            navigate('/c/new', { replace: true });
+            if (inline) {
+              onComplete?.();
+            } else {
+              navigate('/c/new', { replace: true });
+            }
             return 0;
-          } else {
-            return prevCountdown - 1;
           }
+          return prevCountdown - 1;
         });
       }, 1000);
     },
