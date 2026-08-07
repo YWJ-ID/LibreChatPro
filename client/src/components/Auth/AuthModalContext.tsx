@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthContext } from '~/hooks/AuthContext';
@@ -34,6 +34,7 @@ const AuthModalContext = createContext<AuthModalContextValue | undefined>(undefi
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const capturedParamsRef = useRef(false);
   const [authParams, setAuthParams] = useState(() => new URLSearchParams(searchParams));
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<AuthModalStep>('login');
@@ -46,7 +47,10 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     if (authSteps.has(auth as AuthModalStep)) {
       setStep(auth as AuthModalStep);
       setIsOpen(true);
-      setAuthParams(new URLSearchParams(searchParams));
+      if (!capturedParamsRef.current) {
+        capturedParamsRef.current = true;
+        setAuthParams(new URLSearchParams(searchParams));
+      }
     }
 
     const sensitiveParams = ['token', 'userId', 'tempToken'];
@@ -64,6 +68,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
 
   const closeAuthModal = useCallback(() => {
     setIsOpen(false);
+    capturedParamsRef.current = false;
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('auth');
     nextParams.delete('error');
