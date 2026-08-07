@@ -19,6 +19,8 @@ import type { TConversation } from 'librechat-data-provider';
 import { logger, validateFiles, cachePreview, getCachedPreview, removePreviewEntry } from '~/utils';
 import { useGetFileConfig, useUploadFileMutation } from '~/data-provider';
 import useLocalize, { TranslationKeys } from '~/hooks/useLocalize';
+import { useAuthContext } from '~/hooks/AuthContext';
+import { useAuthModal } from '~/components/Auth/AuthModalContext';
 import { useDelayedUploadToast } from './useDelayedUploadToast';
 import { processFileForUpload } from '~/utils/heicConverter';
 import { useChatContext } from '~/Providers/ChatContext';
@@ -47,6 +49,8 @@ const noop = () => {};
 
 const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: FileHandlingState) => {
   const localize = useLocalize();
+  const { isAuthenticated } = useAuthContext();
+  const { openAuthModal } = useAuthModal();
   const queryClient = useQueryClient();
   const { showToast } = useToastContext();
   const [errors, setErrors] = useState<string[]>([]);
@@ -186,6 +190,11 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
   );
 
   const startUpload = async (extendedFile: ExtendedFile) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
+
     const filename = extendedFile.file?.name ?? 'File';
     startUploadTimer(extendedFile.file_id, filename, extendedFile.size);
 
@@ -285,6 +294,11 @@ const useFileHandlingCore = (params: UseFileHandling | undefined, fileState: Fil
   };
 
   const handleFiles = async (_files: FileList | File[], _toolResource?: string) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
+
     abortControllerRef.current = new AbortController();
     const fileList = Array.from(_files);
     /* Validate files */
