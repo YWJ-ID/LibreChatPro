@@ -30,6 +30,23 @@ export default function AuthModal() {
     }
   }, [isAuthenticated, isOpen, closeAuthModal]);
 
+  useEffect(() => {
+    const handleOAuthMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source == null) {
+        return;
+      }
+      if (event.data?.type !== 'librechat-oauth-result') {
+        return;
+      }
+      if (event.data.status === 'error') {
+        setAuthStep('login');
+      }
+    };
+
+    window.addEventListener('message', handleOAuthMessage);
+    return () => window.removeEventListener('message', handleOAuthMessage);
+  }, [setAuthStep]);
+
   if (!startupConfig || isAuthenticated) {
     return null;
   }

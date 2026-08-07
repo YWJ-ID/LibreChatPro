@@ -6,6 +6,16 @@ export default function OAuthError() {
   const localize = useLocalize();
   const [searchParams] = useSearchParams();
   const error = searchParams.get('error') || 'unknown_error';
+  const flowId = searchParams.get('flowId');
+
+  React.useEffect(() => {
+    if (window.opener && window.opener !== window) {
+      window.opener.postMessage(
+        { type: 'librechat-oauth-result', status: 'error', flowId, error },
+        window.location.origin,
+      );
+    }
+  }, [flowId, error]);
 
   const getErrorMessage = (error: string): string => {
     switch (error) {

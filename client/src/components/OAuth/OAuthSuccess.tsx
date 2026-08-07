@@ -7,8 +7,16 @@ export default function OAuthSuccess() {
   const [searchParams] = useSearchParams();
   const [secondsLeft, setSecondsLeft] = useState(3);
   const serverName = searchParams.get('serverName');
+  const flowId = searchParams.get('flowId');
 
   useEffect(() => {
+    if (window.opener && window.opener !== window) {
+      window.opener.postMessage(
+        { type: 'librechat-oauth-result', status: 'success', flowId },
+        window.location.origin,
+      );
+    }
+
     const countdown = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
