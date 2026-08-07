@@ -38,11 +38,21 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const auth = searchParams.get('auth');
-    if (auth && authSteps.has(auth as AuthModalStep)) {
+    if (!auth) {
+      return;
+    }
+    if (authSteps.has(auth as AuthModalStep)) {
       setStep(auth as AuthModalStep);
       setIsOpen(true);
     }
-  }, [searchParams]);
+
+    const sensitiveParams = ['token', 'userId', 'tempToken'];
+    if (sensitiveParams.some((param) => searchParams.has(param))) {
+      const sanitized = new URLSearchParams(searchParams);
+      sensitiveParams.forEach((param) => sanitized.delete(param));
+      setSearchParams(sanitized, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const openAuthModal = useCallback((nextStep: AuthModalStep = 'login') => {
     setStep(nextStep);
