@@ -12,7 +12,7 @@ import { ErrorMessage } from './ErrorMessage';
 export default function AuthModal() {
   const localize = useLocalize();
   const { data: startupConfig } = useGetStartupConfig();
-  const { error, setError, login, isAuthenticated, twoFATempToken } = useAuthContext();
+  const { error, setError, login: authenticate, isAuthenticated, twoFATempToken } = useAuthContext();
   const { isOpen, step, closeAuthModal, setAuthStep } = useAuthModal();
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function AuthModal() {
         {error && <ErrorMessage>{getLoginError(error)}</ErrorMessage>}
         {step === 'login' && startupConfig.emailLoginEnabled && (
           <LoginForm
-            onSubmit={login}
+            onSubmit={(data) => authenticate(data, { redirect: null })}
             startupConfig={startupConfig}
             error={error}
             setError={setError}

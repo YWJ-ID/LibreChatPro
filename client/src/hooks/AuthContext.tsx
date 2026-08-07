@@ -46,6 +46,7 @@ const AuthContextProvider = ({
   const isExternalRedirectRef = useRef(false);
   const [user, setUser] = useRecoilState(store.user);
   const logoutRedirectRef = useRef<string | undefined>(undefined);
+  const loginRedirectRef = useRef<string | null | undefined>(undefined);
   const [token, setToken] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const [twoFATempToken, setTwoFATempToken] = useState<string | undefined>(undefined);
@@ -79,6 +80,10 @@ const AuthContextProvider = ({
           setQueriesEnabled(true);
         }
 
+        if (userContext.redirect === null) {
+          return;
+        }
+
         const searchParams = new URLSearchParams(window.location.search);
         const postLoginRedirect = getPostLoginRedirect(searchParams);
 
@@ -109,7 +114,14 @@ const AuthContextProvider = ({
         return;
       }
       setError(undefined);
-      setUserContext({ token, isAuthenticated: true, user, redirect: '/c/new' });
+      const redirect = loginRedirectRef.current;
+      loginRedirectRef.current = undefined;
+      setUserContext({
+        token,
+        isAuthenticated: true,
+        user,
+        ...(redirect === undefined ? { redirect: '/c/new' } : redirect !== null ? { redirect } : {}),
+      });
     },
     onError: (error: TResError | unknown) => {
       const resError = error as TResError;
@@ -159,7 +171,8 @@ const AuthContextProvider = ({
 
   const userQuery = useGetUserQuery({ enabled: !!(token ?? '') });
 
-  const login = (data: t.TLoginUser) => {
+  const login = (data: t.TLoginUser, options?: { redirect?: string | null }) => {
+    loginRedirectRef.current = options?.redirect;
     loginUser.mutate(data);
   };
 
