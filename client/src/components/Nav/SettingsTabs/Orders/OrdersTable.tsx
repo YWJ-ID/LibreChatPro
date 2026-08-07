@@ -21,18 +21,9 @@ function formatCurrency(value: number): string {
 }
 
 function getStatusLabel(status: t.TPaymentOrder['status'], localize: ReturnType<typeof useLocalize>): string {
-  switch (status) {
-    case 'pending':
-      return localize('com_nav_orders_status_pending');
-    case 'paid':
-      return localize('com_nav_orders_status_paid');
-    case 'credited':
-      return localize('com_nav_orders_status_credited');
-    case 'closed':
-      return localize('com_nav_orders_status_closed');
-    case 'failed':
-      return localize('com_nav_orders_status_failed');
-  }
+  const key = `com_nav_orders_status_${status}` as const;
+  const label = localize(key);
+  return label === key ? status : label;
 }
 
 function OrdersRow({ order }: { order: t.TPaymentOrder }) {

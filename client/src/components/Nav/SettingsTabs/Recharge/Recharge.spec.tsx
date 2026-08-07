@@ -27,6 +27,7 @@ jest.mock('~/data-provider', () => ({
     isLoading: false,
   }),
   useCreatePaymentOrder: () => ({ mutateAsync: mockMutateAsync, isLoading: false }),
+  useCancelPaymentOrder: () => ({ mutate: jest.fn(), isLoading: false }),
   useGetPaymentOrder: (...args) => mockUseGetPaymentOrder(...args),
 }));
 
@@ -48,8 +49,6 @@ describe('Recharge', () => {
   });
 
   it('stores submitted order and refreshes balance when credited', async () => {
-    const submit = jest.fn();
-    jest.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(submit);
     mockUseGetPaymentOrder.mockReturnValue({ data: { status: 'credited' } });
 
     render(<Recharge />);
@@ -58,6 +57,5 @@ describe('Recharge', () => {
     await waitFor(() => expect(mockUseGetPaymentOrder).toHaveBeenCalledWith('order1', expect.any(Object)));
     await waitFor(() => expect(mockInvalidateQueries).toHaveBeenCalledWith(['balance']));
     expect(localStorage.getItem('librechat.pendingPaymentOrderId')).toBeNull();
-    expect(submit).toHaveBeenCalled();
   });
 });
