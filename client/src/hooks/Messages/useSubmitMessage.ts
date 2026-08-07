@@ -3,11 +3,13 @@ import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { replaceSpecialVars } from 'librechat-data-provider';
 import { useChatContext, useChatFormContext, useAddedChatContext } from '~/Providers';
 import { useAuthContext } from '~/hooks/AuthContext';
+import { useAuthModal } from '~/components/Auth/AuthModalContext';
 import { mainTextareaId } from '~/common';
 import store from '~/store';
 
 export default function useSubmitMessage() {
-  const { user } = useAuthContext();
+  const { user, isAuthenticated } = useAuthContext();
+  const { openAuthModal } = useAuthModal();
   const methods = useChatFormContext();
   const { conversation: addedConvo } = useAddedChatContext();
   const { ask, index, getMessages, setMessages } = useChatContext();
@@ -21,6 +23,11 @@ export default function useSubmitMessage() {
       if (!data) {
         return console.warn('No data provided to submitMessage');
       }
+      if (!isAuthenticated) {
+        openAuthModal();
+        return;
+      }
+
       const rootMessages = getMessages();
       const isLatestInRootMessages = rootMessages?.some(
         (message) => message.messageId === latestMessage?.messageId,
@@ -39,7 +46,7 @@ export default function useSubmitMessage() {
       );
       methods.reset();
     },
-    [ask, methods, addedConvo, setMessages, getMessages, latestMessage],
+    [ask, methods, addedConvo, setMessages, getMessages, latestMessage, isAuthenticated, openAuthModal],
   );
 
   const submitPrompt = useCallback(

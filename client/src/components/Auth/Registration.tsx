@@ -4,17 +4,27 @@ import { Turnstile } from '@marsidev/react-turnstile';
 import { ThemeContext, Spinner, Button, isDark } from '@librechat/client';
 import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import { useRegisterUserMutation } from 'librechat-data-provider/react-query';
+import { useGetStartupConfig } from '~/data-provider';
 import { loginPage } from 'librechat-data-provider';
 import type { TRegisterUser, TError } from 'librechat-data-provider';
 import type { TLoginLayoutContext } from '~/common';
 import { useLocalize, TranslationKeys } from '~/hooks';
 import { ErrorMessage } from './ErrorMessage';
 
-const Registration: React.FC = () => {
+type RegistrationProps = {
+  inline?: boolean;
+  onComplete?: () => void;
+};
+
+const Registration: React.FC<RegistrationProps> = ({ inline = false, onComplete }) => {
   const navigate = useNavigate();
   const localize = useLocalize();
   const { theme } = useContext(ThemeContext);
-  const { startupConfig, startupConfigError, isFetching } = useOutletContext<TLoginLayoutContext>();
+  const outletContext = useOutletContext<TLoginLayoutContext | undefined>();
+  const startupQuery = useGetStartupConfig();
+  const startupConfig = outletContext?.startupConfig ?? startupQuery.data;
+  const startupConfigError = outletContext?.startupConfigError ?? startupQuery.error;
+  const isFetching = outletContext?.isFetching ?? startupQuery.isFetching;
 
   const {
     watch,
@@ -44,6 +54,10 @@ const Registration: React.FC = () => {
     onSuccess: () => {
       setIsSubmitting(false);
       setCountdown(3);
+      if (inline && onComplete) {
+        onComplete();
+        return;
+      }
       const timer = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {

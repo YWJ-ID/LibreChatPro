@@ -8,6 +8,7 @@ import {
   TwoFactorScreen,
   RequestPasswordReset,
 } from '~/components/Auth';
+import { AuthModalProvider, AuthModal } from '~/components/Auth';
 import { MarketplaceProvider } from '~/components/Agents/MarketplaceContext';
 import AgentMarketplace from '~/components/Agents/Marketplace';
 import { OAuthSuccess, OAuthError } from '~/components/OAuth';
@@ -23,8 +24,11 @@ import Root from './Root';
 
 const AuthLayout = () => (
   <AuthContextProvider>
-    <Outlet />
-    <ApiErrorWatcher />
+    <AuthModalProvider>
+      <Outlet />
+      <AuthModal />
+      <ApiErrorWatcher />
+    </AuthModalProvider>
   </AuthContextProvider>
 );
 

@@ -1,11 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useToastContext } from '@librechat/client';
 import { useForm, Controller } from 'react-hook-form';
 import { REGEXP_ONLY_DIGITS, REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp';
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot, Label } from '@librechat/client';
 import { useVerifyTwoFactorTempMutation } from '~/data-provider';
-import { useLocalize } from '~/hooks';
+import { useAuthContext, useLocalize } from '~/hooks';
 
 interface VerifyPayload {
   tempToken: string;
@@ -18,10 +17,12 @@ type TwoFactorFormInputs = {
   backupCode?: string;
 };
 
-const TwoFactorScreen: React.FC = React.memo(() => {
-  const [searchParams] = useSearchParams();
-  const tempTokenRaw = searchParams.get('tempToken');
-  const tempToken = tempTokenRaw !== null && tempTokenRaw !== '' ? tempTokenRaw : '';
+type TwoFactorScreenProps = {
+  tempToken?: string;
+  onComplete?: () => void;
+};
+
+const TwoFactorScreen: React.FC<TwoFactorScreenProps> = React.memo(({ tempToken = '', onComplete }) => {
 
   const {
     control,
@@ -29,13 +30,15 @@ const TwoFactorScreen: React.FC = React.memo(() => {
     formState: { errors },
   } = useForm<TwoFactorFormInputs>();
   const localize = useLocalize();
+  const { completeTwoFactor } = useAuthContext();
   const { showToast } = useToastContext();
   const [useBackup, setUseBackup] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { mutate: verifyTempMutate } = useVerifyTwoFactorTempMutation({
     onSuccess: (result) => {
       if (result.token != null && result.token !== '') {
-        window.location.href = '/';
+        completeTwoFactor(result);
+        onComplete?.();
       }
     },
     onMutate: () => {

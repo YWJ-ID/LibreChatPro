@@ -48,6 +48,7 @@ const AuthContextProvider = ({
   const logoutRedirectRef = useRef<string | undefined>(undefined);
   const [token, setToken] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [twoFATempToken, setTwoFATempToken] = useState<string | undefined>(undefined);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const setQueriesEnabled = useSetRecoilState<boolean>(store.queriesEnabled);
 
@@ -102,8 +103,9 @@ const AuthContextProvider = ({
   const loginUser = useLoginUserMutation({
     onSuccess: (data: t.TLoginResponse) => {
       const { user, token, twoFAPending, tempToken } = data;
-      if (twoFAPending) {
-        navigate(`/login/2fa?tempToken=${tempToken}`, { replace: true });
+      if (twoFAPending && tempToken) {
+        setError(undefined);
+        setTwoFATempToken(tempToken);
         return;
       }
       setError(undefined);
@@ -112,13 +114,6 @@ const AuthContextProvider = ({
     onError: (error: TResError | unknown) => {
       const resError = error as TResError;
       doSetError(resError.message);
-      // Preserve a valid redirect_to across login failures so the deep link survives retries.
-      const redirectTo = new URLSearchParams(window.location.search).get('redirect_to');
-      const loginPath =
-        redirectTo && isSafeRedirect(redirectTo)
-          ? `/login?redirect_to=${encodeURIComponent(redirectTo)}`
-          : '/login';
-      navigate(loginPath, { replace: true });
     },
   });
   const logoutUser = useLogoutUserMutation({
@@ -167,6 +162,26 @@ const AuthContextProvider = ({
   const login = (data: t.TLoginUser) => {
     loginUser.mutate(data);
   };
+
+  const completeTwoFactor = useCallback(
+    (data: t.TVerify2FATempResponse, options?: { redirect?: string | null }) => {
+      setTwoFATempToken(undefined);
+      setError(undefined);
+      if (data.token && data.user) {
+        setUserContext({
+          token: data.token,
+          isAuthenticated: true,
+          user: data.user,
+          redirect: options?.redirect ?? '/c/new',
+        });
+      }
+    },
+    [setUserContext],
+  );
+
+  const clearTwoFactor = useCallback(() => {
+    setTwoFATempToken(undefined);
+  }, []);
 
   const silentRefresh = useCallback(() => {
     if (authConfig?.test === true) {
@@ -261,7 +276,10 @@ const AuthContextProvider = ({
       user,
       token,
       error,
+      twoFATempToken,
       login,
+      completeTwoFactor,
+      clearTwoFactor,
       logout,
       setError,
       roles: {
@@ -277,6 +295,9 @@ const AuthContextProvider = ({
       error,
       isAuthenticated,
       token,
+      twoFATempToken,
+      completeTwoFactor,
+      clearTwoFactor,
       userRole,
       adminRole,
       isCustomRole,

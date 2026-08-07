@@ -472,12 +472,19 @@ export type TResError = {
   message: string;
 };
 
+export type TLoginOptions = {
+  redirect?: string | null;
+};
+
 export type TAuthContext = {
   user: t.TUser | undefined;
   token: string | undefined;
   isAuthenticated: boolean;
   error: string | undefined;
-  login: (data: t.TLoginUser) => void;
+  twoFATempToken: string | undefined;
+  login: (data: t.TLoginUser, options?: TLoginOptions) => void;
+  completeTwoFactor: (data: t.TVerify2FATempResponse, options?: TLoginOptions) => void;
+  clearTwoFactor: () => void;
   logout: (redirect?: string) => void;
   setError: React.Dispatch<React.SetStateAction<string | undefined>>;
   roles?: Record<string, t.TRole | null | undefined>;
