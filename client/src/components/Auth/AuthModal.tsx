@@ -6,6 +6,9 @@ import { useAuthModal } from './AuthModalContext';
 import LoginForm from './LoginForm';
 import Registration from './Registration';
 import TwoFactorScreen from './TwoFactorScreen';
+import RequestPasswordReset from './RequestPasswordReset';
+import ResetPassword from './ResetPassword';
+import VerifyEmail from './VerifyEmail';
 import { getLoginError } from '~/utils';
 import { ErrorMessage } from './ErrorMessage';
 
@@ -44,7 +47,11 @@ export default function AuthModal() {
               ? localize('com_auth_create_account')
               : step === 'two-factor'
                 ? localize('com_auth_verify_your_identity')
-                : localize('com_auth_welcome_back')}
+                : step === 'forgot-password' || step === 'reset-password'
+                  ? localize('com_auth_reset_password')
+                  : step === 'verify-email'
+                    ? localize('com_auth_email_verification_in_progress')
+                    : localize('com_auth_welcome_back')}
           </OGDialogTitle>
           <p id="inline-auth-description" className="sr-only">
             {localize('com_auth_welcome_back')}
@@ -63,6 +70,9 @@ export default function AuthModal() {
         {step === 'two-factor' && twoFATempToken && (
           <TwoFactorScreen tempToken={twoFATempToken} onComplete={closeAuthModal} />
         )}
+        {step === 'forgot-password' && <RequestPasswordReset />}
+        {step === 'reset-password' && <ResetPassword />}
+        {step === 'verify-email' && <VerifyEmail />}
         {step === 'login' && startupConfig.registrationEnabled && (
           <button
             type="button"

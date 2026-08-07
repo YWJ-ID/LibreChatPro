@@ -6,6 +6,7 @@ import { useResetPasswordMutation } from 'librechat-data-provider/react-query';
 import type { TResetPassword } from 'librechat-data-provider';
 import type { TLoginLayoutContext } from '~/common';
 import { useLocalize } from '~/hooks';
+import { useGetStartupConfig } from '~/data-provider';
 
 function ResetPassword() {
   const localize = useLocalize();
@@ -19,7 +20,11 @@ function ResetPassword() {
   const [params] = useSearchParams();
   const password = watch('password');
   const resetPassword = useResetPasswordMutation();
-  const { setError, setHeaderText, startupConfig } = useOutletContext<TLoginLayoutContext>();
+  const outletContext = useOutletContext<TLoginLayoutContext | undefined>();
+  const startupQuery = useGetStartupConfig();
+  const startupConfig = outletContext?.startupConfig ?? startupQuery.data;
+  const setError = outletContext?.setError ?? (() => undefined);
+  const setHeaderText = outletContext?.setHeaderText ?? (() => undefined);
 
   const onSubmit = (data: TResetPassword) => {
     resetPassword.mutate(data, {

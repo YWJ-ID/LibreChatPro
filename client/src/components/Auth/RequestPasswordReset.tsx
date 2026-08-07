@@ -4,6 +4,7 @@ import { Spinner, Button } from '@librechat/client';
 import { useOutletContext } from 'react-router-dom';
 import { useRequestPasswordResetMutation } from 'librechat-data-provider/react-query';
 import { loginPage } from 'librechat-data-provider';
+import { useGetStartupConfig } from '~/data-provider';
 import type { TRequestPasswordReset, TRequestPasswordResetResponse } from 'librechat-data-provider';
 import type { TLoginLayoutContext } from '~/common';
 import type { FC } from 'react';
@@ -43,7 +44,10 @@ function RequestPasswordReset() {
     formState: { errors },
   } = useForm<TRequestPasswordReset>();
   const [bodyText, setBodyText] = useState<ReactNode | undefined>(undefined);
-  const { startupConfig, setHeaderText } = useOutletContext<TLoginLayoutContext>();
+  const outletContext = useOutletContext<TLoginLayoutContext | undefined>();
+  const startupQuery = useGetStartupConfig();
+  const startupConfig = outletContext?.startupConfig ?? startupQuery.data;
+  const setHeaderText = outletContext?.setHeaderText ?? (() => undefined);
 
   const requestPasswordReset = useRequestPasswordResetMutation();
   const { isLoading } = requestPasswordReset;
