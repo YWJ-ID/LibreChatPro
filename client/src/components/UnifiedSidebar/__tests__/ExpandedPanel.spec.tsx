@@ -28,8 +28,13 @@ jest.mock('~/store', () => {
 });
 
 jest.mock('~/hooks', () => ({
+  useAuthContext: () => ({ isAuthenticated: true }),
   useLocalize: () => (key: string) => key,
   useNewConvo: () => ({ newConversation: mockNewConversation }),
+}));
+
+jest.mock('~/components/Auth/AuthModalContext', () => ({
+  useAuthModal: () => ({ openAuthModal: jest.fn() }),
 }));
 
 jest.mock('~/utils', () => ({

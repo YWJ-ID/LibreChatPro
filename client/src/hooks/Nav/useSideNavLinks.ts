@@ -19,6 +19,7 @@ import {
 } from 'librechat-data-provider';
 import type { TInterfaceConfig, TEndpointsConfig } from 'librechat-data-provider';
 import type { NavLink } from '~/common';
+import { useAuthContext } from '~/hooks/AuthContext';
 import {
   useAgentCapabilities,
   useMCPServerManager,
@@ -52,6 +53,7 @@ export default function useSideNavLinks({
   endpointsConfig: TEndpointsConfig;
   includeHidePanel?: boolean;
 }) {
+  const { isAuthenticated } = useAuthContext();
   const hasAccessToPrompts = useHasAccess({
     permissionType: PermissionTypes.PROMPTS,
     permission: Permissions.USE,
@@ -88,13 +90,18 @@ export default function useSideNavLinks({
     permissionType: PermissionTypes.MCP_SERVERS,
     permission: Permissions.CREATE,
   });
-  const { availableMCPServers } = useMCPServerManager();
+  const { availableMCPServers } = useMCPServerManager({ enabled: isAuthenticated });
 
-  const { agentsConfig } = useGetAgentsConfig({ endpointsConfig });
+  const { agentsConfig } = useGetAgentsConfig({
+    endpointsConfig,
+  });
   const { skillsEnabled } = useAgentCapabilities(agentsConfig?.capabilities);
 
   const Links = useMemo(() => {
     const links: NavLink[] = [];
+    if (!isAuthenticated) {
+      return links;
+    }
 
     if (
       endpointsConfig?.[EModelEndpoint.agents] &&
@@ -236,6 +243,7 @@ export default function useSideNavLinks({
     hasAccessToCreateMCP,
     includeHidePanel,
     hidePanel,
+    isAuthenticated,
   ]);
 
   return Links;

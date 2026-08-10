@@ -3,15 +3,41 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRecoilValue } from 'recoil';
 import { SquarePen } from 'lucide-react';
 import { QueryKeys } from 'librechat-data-provider';
-import { Skeleton, Sidebar, Button, TooltipAnchor } from '@librechat/client';
+import { Skeleton, Sidebar, Button, TooltipAnchor, Avatar } from '@librechat/client';
 import type { NavLink } from '~/common';
 import { CLOSE_SIDEBAR_ID } from '~/components/Chat/Menus/OpenSidebar';
+import { useAuthModal } from '~/components/Auth/AuthModalContext';
 import { useActivePanel, resolveActivePanel, DEFAULT_PANEL } from '~/Providers';
-import { useLocalize, useNewConvo } from '~/hooks';
+import { useAuthContext, useLocalize, useNewConvo } from '~/hooks';
 import { clearMessagesCache, cn } from '~/utils';
 import store from '~/store';
 
 const AccountSettings = lazy(() => import('~/components/Nav/AccountSettings'));
+
+function GuestAccountButton() {
+  const localize = useLocalize();
+  const { openAuthModal } = useAuthModal();
+
+  return (
+    <TooltipAnchor
+      side="right"
+      description={localize('com_nav_account_settings')}
+      render={
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          aria-label={localize('com_nav_account_settings')}
+          data-testid="nav-user"
+          className="h-9 w-9 rounded-lg"
+          onClick={() => openAuthModal('login')}
+        >
+          <Avatar user={undefined} size={28} />
+        </Button>
+      }
+    />
+  );
+}
 
 const NewChatButton = memo(function NewChatButton({
   setActive,
@@ -130,6 +156,7 @@ function ExpandedPanel({
   onExpand?: () => void;
 }) {
   const localize = useLocalize();
+  const { isAuthenticated } = useAuthContext();
   const { active, setActive } = useActivePanel();
   const effectiveActive = resolveActivePanel(active, links);
 
@@ -173,9 +200,13 @@ function ExpandedPanel({
       </div>
 
       <div className="mt-auto">
-        <Suspense fallback={<Skeleton className="h-9 w-9 rounded-lg" />}>
-          <AccountSettings collapsed />
-        </Suspense>
+        {isAuthenticated ? (
+          <Suspense fallback={<Skeleton className="h-9 w-9 rounded-lg" />}>
+            <AccountSettings collapsed />
+          </Suspense>
+        ) : (
+          <GuestAccountButton />
+        )}
       </div>
     </div>
   );

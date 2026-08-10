@@ -219,6 +219,22 @@ describe('AuthContextProvider — logout onSuccess/onError handling', () => {
     expect(mockSetTokenHeader).toHaveBeenCalledWith(undefined);
   });
 
+  it('redirects to the guest chat after logout', () => {
+    jest.useFakeTimers();
+    const replaceSpy = jest.spyOn(window.location, 'replace').mockImplementation(() => {});
+
+    renderProvider();
+
+    act(() => {
+      mockCapturedLogoutOptions.onSuccess({ message: 'Logout successful' });
+      jest.advanceTimersByTime(100);
+    });
+
+    expect(replaceSpy).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/c/new', { replace: true });
+    jest.useRealTimers();
+  });
+
   it('does not call window.location.replace when redirect is absent', async () => {
     const replaceSpy = jest.spyOn(window.location, 'replace').mockImplementation(() => {});
 

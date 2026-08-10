@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { MessagesSquare } from 'lucide-react';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
+import { useAuthContext } from '~/hooks/AuthContext';
 import { getConfigDefaults, getEndpointField } from 'librechat-data-provider';
 import type { TEndpointsConfig } from 'librechat-data-provider';
 import type { NavLink } from '~/common';
@@ -13,10 +14,13 @@ import store from '~/store';
 const defaultInterface = getConfigDefaults().interface;
 
 export default function useUnifiedSidebarLinks() {
+  const { isAuthenticated } = useAuthContext();
   const conversation = useRecoilValue(store.conversationByIndex(0));
   const endpoint = conversation?.endpoint;
-  const { data: startupConfig } = useGetStartupConfig();
-  const { data: endpointsConfig = {} as TEndpointsConfig } = useGetEndpointsQuery();
+  const { data: startupConfig } = useGetStartupConfig({ enabled: isAuthenticated });
+  const { data: endpointsConfig = {} as TEndpointsConfig } = useGetEndpointsQuery({
+    enabled: isAuthenticated,
+  });
 
   const interfaceConfig = useMemo(
     () => startupConfig?.interface ?? defaultInterface,
@@ -33,7 +37,9 @@ export default function useUnifiedSidebarLinks() {
     [endpointsConfig, endpoint],
   );
 
-  const { data: keyExpiry = { expiresAt: undefined } } = useUserKeyQuery(endpoint ?? '');
+  const { data: keyExpiry = { expiresAt: undefined } } = useUserKeyQuery(endpoint ?? '', {
+    enabled: isAuthenticated,
+  });
 
   const keyProvided = useMemo(
     () => (userProvidesKey ? !!(keyExpiry.expiresAt ?? '') : true),
@@ -55,11 +61,11 @@ export default function useUnifiedSidebarLinks() {
       label: '',
       icon: MessagesSquare,
       id: 'conversations',
-      Component: ConversationsSection,
+      ...(isAuthenticated ? { Component: ConversationsSection } : {}),
     };
 
-    return [conversationLink, ...sideNavLinks];
-  }, [sideNavLinks]);
+    return isAuthenticated ? [conversationLink, ...sideNavLinks] : [conversationLink];
+  }, [isAuthenticated, sideNavLinks]);
 
   return links;
 }
