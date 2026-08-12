@@ -20,6 +20,7 @@ import {
   useQueryParams,
   useSubmitMessage,
   useFocusChatEffect,
+  useAuthContext,
 } from '~/hooks';
 import PendingManualSkillsChips from './PendingManualSkillsChips';
 import { cn, getModelSpec, removeFocusRings } from '~/utils';
@@ -39,6 +40,13 @@ import EditBadges from './EditBadges';
 import BadgeRow from './BadgeRow';
 import Mention from './Mention';
 import store from '~/store';
+
+export function shouldRenderChatInput(
+  endpoint: string | null | undefined,
+  isAuthenticated: boolean,
+) {
+  return Boolean(endpoint) || !isAuthenticated;
+}
 
 interface ChatFormProps {
   index: number;
@@ -68,6 +76,7 @@ const ChatForm = memo(function ChatForm({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   useFocusChatEffect(textAreaRef);
   const localize = useLocalize();
+  const { isAuthenticated } = useAuthContext();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [, setIsScrollable] = useState(false);
@@ -294,7 +303,7 @@ const ChatForm = memo(function ChatForm({
               setFiles={setFiles}
               setFilesLoading={setFilesLoading}
             />
-            {endpoint && (
+            {shouldRenderChatInput(endpoint, isAuthenticated) && (
               <div className={cn('flex', isRTL ? 'flex-row-reverse' : 'flex-row')}>
                 <div
                   className="relative flex-1"
@@ -389,7 +398,7 @@ const ChatForm = memo(function ChatForm({
                 {isSubmitting && showStopButton ? (
                   <StopButton stop={handleStopGenerating} setShowStopButton={setShowStopButton} />
                 ) : (
-                  endpoint && (
+                  shouldRenderChatInput(endpoint, isAuthenticated) && (
                     <SendButton
                       ref={submitButtonRef}
                       control={methods.control}
