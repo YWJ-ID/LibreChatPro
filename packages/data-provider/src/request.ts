@@ -61,6 +61,49 @@ async function _patch(url: string, data?: any) {
   return response.data;
 }
 
+export type AuthStatus = 'checking' | 'guest' | 'authenticated';
+
+let authStatus: AuthStatus = 'authenticated';
+
+const PUBLIC_URL_PATTERNS = ['/api/config', '/api/banner', '/api/auth', '/api/share'];
+
+const isPublicUrl = (url: string): boolean => {
+  if (!url.includes('/api/')) {
+    return true;
+  }
+  return PUBLIC_URL_PATTERNS.some((pattern) => url.includes(pattern));
+};
+
+const deferredRequests: {
+  config: any;
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}[] = [];
+
+const flushDeferredRequests = () => {
+  const pending = deferredRequests.splice(0);
+  if (authStatus === 'authenticated') {
+    const authHeader = axios.defaults?.headers?.common?.['Authorization'];
+    pending.forEach(({ config, resolve }) => {
+      if (authHeader && config.headers) {
+        config.headers['Authorization'] = authHeader;
+      }
+      resolve(config);
+    });
+    return;
+  }
+  pending.forEach(({ reject }) => reject(new Error('Request skipped: not authenticated')));
+};
+
+export const setAuthStatus = (next: AuthStatus) => {
+  authStatus = next;
+  if (next === 'authenticated' || next === 'guest') {
+    flushDeferredRequests();
+  }
+};
+
+export const getAuthStatus = (): AuthStatus => authStatus;
+
 let isRefreshing = false;
 let failedQueue: { resolve: (value?: any) => void; reject: (reason?: any) => void }[] = [];
 
@@ -84,6 +127,22 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
 };
 
 if (typeof window !== 'undefined') {
+  axios.interceptors.request.use(
+    (config: any) => {
+      const url = typeof config.url === 'string' ? config.url : '';
+      if (config._retry || isPublicUrl(url) || authStatus === 'authenticated') {
+        return config;
+      }
+      if (authStatus === 'guest') {
+        return Promise.reject(new Error(`Request to ${url} skipped: not authenticated`));
+      }
+      return new Promise((resolve, reject) => {
+        deferredRequests.push({ config, resolve, reject });
+      });
+    },
+    (error) => Promise.reject(error),
+  );
+
   axios.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -168,4 +227,6 @@ export default {
   patch: _patch,
   refreshToken,
   dispatchTokenUpdatedEvent,
+  setAuthStatus,
+  getAuthStatus,
 };

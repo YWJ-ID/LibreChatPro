@@ -54,7 +54,6 @@ export default function ChatRoute() {
 
   const modelsQuery = useGetModelsQuery({
     enabled: isAuthenticated,
-    refetchOnMount: 'always',
   });
   const initialConvoQuery = useGetConvoIdQuery(conversationId, {
     enabled:

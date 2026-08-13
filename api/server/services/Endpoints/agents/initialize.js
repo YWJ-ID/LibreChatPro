@@ -141,6 +141,11 @@ const initializeClient = async ({ req, res, signal, endpointOption }) => {
   const codeEnvAvailable = enabledCapabilities.has(AgentCapabilities.execute_code);
   const ephemeralSkillsToggle = req.body?.ephemeralAgent?.skills === true;
 
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new Error('Authenticated user context unavailable');
+  }
+
   const accessibleSkillIds = skillsCapabilityEnabled
     ? await findAccessibleResources({
         userId: req.user.id,
@@ -151,7 +156,7 @@ const initializeClient = async ({ req, res, signal, endpointOption }) => {
     : [];
 
   const { skillStates, defaultActiveOnShare } = await loadSkillStates({
-    userId: req.user.id,
+    userId,
     appConfig,
     getUserById: db.getUserById,
     accessibleSkillIds,

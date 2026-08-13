@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   apiBaseUrl,
   SystemRoles,
+  setAuthStatus,
   setTokenHeader,
   isSystemRoleName,
 } from 'librechat-data-provider';
@@ -53,6 +54,12 @@ const AuthContextProvider = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const setQueriesEnabled = useSetRecoilState<boolean>(store.queriesEnabled);
 
+  const authStatusInit = useRef(false);
+  if (!authStatusInit.current) {
+    authStatusInit.current = true;
+    setAuthStatus('checking');
+  }
+
   const userRoleName = user?.role ?? '';
   const isCustomRole = isAuthenticated && !!user?.role && !isSystemRoleName(user.role);
 
@@ -75,6 +82,7 @@ const AuthContextProvider = ({
         setUser(user);
         setToken(token);
         setTokenHeader(token);
+        setAuthStatus(isAuthenticated ? 'authenticated' : 'guest');
         setIsAuthenticated(isAuthenticated);
         if (isAuthenticated) {
           setQueriesEnabled(true);
@@ -237,12 +245,14 @@ const AuthContextProvider = ({
           setUserContext({ user, token, isAuthenticated: true, redirect });
           return;
         }
+        setAuthStatus('guest');
         console.log('Token is not present. User is not authenticated.');
       },
       onError: (error) => {
         if (isExternalRedirectRef.current) {
           return;
         }
+        setAuthStatus('guest');
         console.log('refreshToken mutation error:', error);
       },
     });

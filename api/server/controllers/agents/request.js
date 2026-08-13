@@ -91,7 +91,10 @@ const ResumableAgentController = async (req, res, next, initializeClient, addTit
     responseMessageId: editedResponseMessageId = null,
   } = req.body;
 
-  const userId = req.user.id;
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
 
   const { allowed, pendingRequests, limit } = await checkAndIncrementPendingRequest(userId);
   if (!allowed) {

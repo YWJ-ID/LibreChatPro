@@ -9,6 +9,8 @@ import { MemoryRouter } from 'react-router-dom';
 
 import type { TAuthConfig } from '~/common';
 
+import { getAuthStatus, setAuthStatus } from 'librechat-data-provider';
+
 import { AuthContextProvider, useAuthContext } from '../AuthContext';
 import { SESSION_KEY } from '~/utils';
 
@@ -465,6 +467,75 @@ describe('AuthContextProvider — logout error handling', () => {
 
     expect(replaceSpy).not.toHaveBeenCalled();
     expect(getByTestId('consumer').getAttribute('data-authenticated')).toBe('false');
+    jest.useRealTimers();
+  });
+});
+
+describe('AuthContextProvider — request-layer auth gate wiring', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    setAuthStatus('authenticated');
+    sessionStorage.clear();
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('sets the auth gate to checking on mount before refresh resolves', () => {
+    renderProvider();
+
+    expect(getAuthStatus()).toBe('checking');
+  });
+
+  it('transitions the gate to guest when refresh fails', () => {
+    renderProviderLive();
+
+    const [, refreshOptions] = mockRefreshMutate.mock.calls[0] as [
+      unknown,
+      { onError: (error: unknown) => void },
+    ];
+
+    act(() => {
+      refreshOptions.onError(new Error('no session'));
+    });
+
+    expect(getAuthStatus()).toBe('guest');
+  });
+
+  it('transitions the gate to guest when refresh succeeds without a token', () => {
+    renderProviderLive();
+
+    const [, refreshOptions] = mockRefreshMutate.mock.calls[0] as [
+      unknown,
+      { onSuccess: (data: unknown) => void },
+    ];
+
+    act(() => {
+      refreshOptions.onSuccess({ user: undefined });
+    });
+
+    expect(getAuthStatus()).toBe('guest');
+  });
+
+  it('transitions the gate to authenticated on successful token refresh', () => {
+    jest.useFakeTimers();
+    renderProviderLive();
+
+    const [, refreshOptions] = mockRefreshMutate.mock.calls[0] as [
+      unknown,
+      { onSuccess: (data: unknown) => void },
+    ];
+
+    act(() => {
+      refreshOptions.onSuccess({ user: { id: '1', role: 'USER' }, token: 'tok' });
+    });
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    expect(getAuthStatus()).toBe('authenticated');
     jest.useRealTimers();
   });
 });
