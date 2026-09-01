@@ -74,7 +74,7 @@ export default function AuthModal() {
             {localize('com_auth_welcome_back')}
           </p>
         </OGDialogHeader>
-        {error && <ErrorMessage>{getLoginError(error)}</ErrorMessage>}
+        {error && <ErrorMessage>{localize(getLoginError(error))}</ErrorMessage>}
         {step === 'login' && startupConfig.emailLoginEnabled && (
           <LoginForm
             onSubmit={(data) => authenticate(data, { redirect: null })}

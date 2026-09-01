@@ -44,6 +44,7 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
     onError: (error: unknown) => {
       setHeaderText(localize('com_auth_email_verification_failed') + ' 😢');
       setShowResendLink(true);
+      setCountdown(0);
       setVerificationStatus(true);
     },
   });
@@ -55,6 +56,7 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
     },
     onError: () => {
       setHeaderText(localize('com_auth_email_resent_failed') + ' 😢');
+      setShowResendLink(true);
     },
     onMutate: () => setShowResendLink(false),
   });
@@ -77,6 +79,7 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
         setHeaderText(localize('com_auth_email_verification_invalid') + ' 🤨');
       }
       setShowResendLink(true);
+      setCountdown(0);
       setVerificationStatus(true);
     }
   }, [token, email, verificationStatus, verifyEmailMutation]);
