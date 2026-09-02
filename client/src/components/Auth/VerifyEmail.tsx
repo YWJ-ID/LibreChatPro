@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Spinner, ThemeSelector } from '@librechat/client';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Spinner } from '@librechat/client';
+import { useSearchParams } from 'react-router-dom';
 import { useVerifyEmailMutation, useResendVerificationEmail } from '~/data-provider';
 import { useLocalize } from '~/hooks';
+import { useAuthModal } from './AuthModalContext';
 
 type VerifyEmailProps = {
   token?: string;
@@ -10,8 +11,8 @@ type VerifyEmailProps = {
 };
 
 function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmailProps = {}) {
-  const navigate = useNavigate();
   const localize = useLocalize();
+  const { setAuthStep } = useAuthModal();
   const [params] = useSearchParams();
 
   const [countdown, setCountdown] = useState<number>(3);
@@ -27,13 +28,13 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
       setCountdown((prevCountdown) => {
         if (prevCountdown <= 1) {
           clearInterval(timer);
-          navigate('/c/new', { replace: true });
+          setAuthStep('login');
           return 0;
         }
         return prevCountdown - 1;
       });
     }, 1000);
-  }, [navigate]);
+  }, [setAuthStep]);
 
   const verifyEmailMutation = useVerifyEmailMutation({
     onSuccess: () => {
@@ -86,19 +87,19 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
 
   const VerificationSuccess = () => (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="mb-4 text-center text-3xl font-semibold text-black dark:text-white">
+      <h1 className="mb-3 text-center text-lg font-semibold text-black dark:text-white">
         {headerText}
       </h1>
       {countdown > 0 && (
-        <p className="text-center text-lg text-gray-600 dark:text-gray-400">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           {localize('com_auth_email_verification_redirecting', { 0: countdown.toString() })}
         </p>
       )}
       {showResendLink && countdown === 0 && (
-        <p className="text-center text-lg text-gray-600 dark:text-gray-400">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           {localize('com_auth_email_verification_resend_prompt')}
           <button
-            className="ml-2 text-blue-600 hover:underline"
+            className="ml-2 text-sm text-blue-600 hover:underline"
             onClick={handleResendEmail}
             disabled={resendEmailMutation.isLoading}
           >
@@ -111,20 +112,17 @@ function RequestPasswordReset({ token: tokenProp, email: emailProp }: VerifyEmai
 
   const VerificationInProgress = () => (
     <div className="flex flex-col items-center justify-center">
-      <h1 className="mb-4 text-center text-3xl font-semibold text-black dark:text-white">
+      <h1 className="mb-3 text-center text-lg font-semibold text-black dark:text-white">
         {localize('com_auth_email_verification_in_progress')}
       </h1>
-      <div className="mt-4 flex justify-center">
-        <Spinner className="h-8 w-8 text-green-500" />
+      <div className="mt-3 flex justify-center">
+        <Spinner className="h-6 w-6 text-green-500" />
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white pt-6 dark:bg-gray-900 sm:pt-0">
-      <div className="absolute bottom-0 left-0 m-4">
-        <ThemeSelector />
-      </div>
+    <div className="flex flex-col items-center justify-center py-6 text-center">
       {verificationStatus ? <VerificationSuccess /> : <VerificationInProgress />}
     </div>
   );

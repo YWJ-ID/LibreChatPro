@@ -65,7 +65,13 @@ export type AuthStatus = 'checking' | 'guest' | 'authenticated';
 
 let authStatus: AuthStatus = 'authenticated';
 
-const PUBLIC_URL_PATTERNS = ['/api/config', '/api/banner', '/api/auth', '/api/share'];
+const PUBLIC_URL_PATTERNS = [
+  '/api/config',
+  '/api/banner',
+  '/api/auth',
+  '/api/share',
+  '/api/user/verify',
+];
 
 const isPublicUrl = (url: string): boolean => {
   if (!url.includes('/api/')) {

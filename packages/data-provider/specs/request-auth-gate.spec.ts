@@ -96,6 +96,13 @@ describe('auth gate — guest', () => {
     await axios.get('/api/config');
     expect(mockAdapter).toHaveBeenCalledTimes(1);
   });
+
+  it('lets email verification endpoints through for unauthenticated users', async () => {
+    setAuthStatus('guest');
+    await axios.get('/api/user/verify');
+    await axios.get('/api/user/verify/resend');
+    expect(mockAdapter).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('auth gate — URL classification', () => {
