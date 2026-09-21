@@ -5,7 +5,7 @@ import type { AlipaySdkCommonResult, AlipaySdkConfig } from 'alipay-sdk';
 import type { AppConfig } from '@librechat/data-schemas';
 import type { PaymentProvider } from './providers';
 
-type AlipayQueryResult = Partial<Pick<AlipaySdkCommonResult, 'code' | 'msg'>> & {
+type AlipayQueryResult = Partial<Pick<AlipaySdkCommonResult, 'code' | 'msg' | 'sub_code' | 'sub_msg'>> & {
   trade_no?: string;
   total_amount?: string;
   trade_status?: string;
@@ -84,6 +84,7 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
     name: 'alipay',
     async createQRCodePayment(input) {
       const response = await config.client.exec('alipay.trade.precreate', {
+        notify_url: config.notifyUrl,
         bizContent: {
           out_trade_no: input.outTradeNo,
           total_amount: input.amountCny,
@@ -92,7 +93,15 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
         },
       });
 
-      return { qrCode: response.qr_code ?? response.qrCode ?? '' };
+      const qrCode = response.qr_code ?? response.qrCode ?? '';
+      if ((response.code && response.code !== '10000') || !qrCode) {
+        throw new Error(
+          `Alipay precreate failed: code=${response.code} msg=${response.msg} ` +
+            `subCode=${response.sub_code} subMsg=${response.sub_msg} response=${JSON.stringify(response)}`,
+        );
+      }
+
+      return { qrCode };
     },
     async verifyNotify(payload) {
       if (!config.client.checkNotifySign(payload)) {
@@ -116,6 +125,10 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
       const response = await config.client.exec('alipay.trade.query', {
         bizContent: { out_trade_no: input.outTradeNo },
       });
+
+      if (response.code && response.code !== '10000') {
+        return { isValid: false };
+      }
 
       return {
         isValid: true,

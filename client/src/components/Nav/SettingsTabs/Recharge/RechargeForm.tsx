@@ -16,6 +16,7 @@ function RechargeForm() {
   const [pendingOrderId, setPendingOrderId] = useState(() => localStorage.getItem(pendingPaymentOrderKey) ?? '');
   const [activeQrPayment, setActiveQrPayment] = useState<{
     orderId: string;
+    outTradeNo: string;
     qrCode: string;
     amountCny: number;
     credits: number;
@@ -65,6 +66,7 @@ function RechargeForm() {
 
       setActiveQrPayment({
         orderId: result.orderId,
+        outTradeNo: result.outTradeNo,
         qrCode: result.qrCode,
         amountCny: amount,
         credits,
@@ -164,9 +166,12 @@ function RechargeForm() {
       {activeQrPayment && (
         <QRCodeDialog
           orderId={activeQrPayment.orderId}
+          outTradeNo={activeQrPayment.outTradeNo}
           qrCode={activeQrPayment.qrCode}
           amountCny={activeQrPayment.amountCny}
           credits={activeQrPayment.credits}
+          merchantName={merchantName}
+          merchantContact={merchantContact}
           onClose={() => setActiveQrPayment(null)}
           onSuccess={handleSuccess}
         />

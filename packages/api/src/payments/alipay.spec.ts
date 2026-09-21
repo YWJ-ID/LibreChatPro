@@ -28,6 +28,7 @@ describe('createAlipayProvider', () => {
 
     expect(result).toEqual({ qrCode: 'https://qr.alipay.com/test123' });
     expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
+      notify_url: 'https://example.com/api/payments/alipay/notify',
       bizContent: {
         out_trade_no: 'LC202605260003',
         total_amount: '10.00',
@@ -35,6 +36,34 @@ describe('createAlipayProvider', () => {
         product_code: 'FACE_TO_FACE_PAYMENT',
       },
     });
+  });
+
+  it('throws with Alipay error details when precreate fails', async () => {
+    const exec = jest.fn(async () => ({
+      code: '40004',
+      msg: 'Business Failed',
+      sub_code: 'ACQ.TRADE_NOT_EXIST',
+      sub_msg: 'the trade does not exist',
+    }));
+    const provider = createAlipayProvider({
+      appId: 'app-id',
+      gateway: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+      privateKey: 'private-key',
+      alipayPublicKey: 'public-key',
+      notifyUrl: 'https://example.com/api/payments/alipay/notify',
+      returnUrl: 'https://example.com/payment/return',
+      sellerId: 'seller-id',
+      signType: 'RSA2',
+      client: {
+        pageExecute: jest.fn(),
+        checkNotifySign: jest.fn(() => true),
+        exec,
+      },
+    });
+
+    await expect(
+      provider.createQRCodePayment({ outTradeNo: 'LC202605260008', amountCny: '10.00', subject: 'test' }),
+    ).rejects.toThrow(/code=40004[\s\S]*ACQ.TRADE_NOT_EXIST/);
   });
 
   it('falls back to camelCase when qr_code is not returned', async () => {
@@ -63,6 +92,7 @@ describe('createAlipayProvider', () => {
 
     expect(result).toEqual({ qrCode: 'https://qr.alipay.com/camel' });
     expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
+      notify_url: 'https://example.com/notify',
       bizContent: {
         out_trade_no: 'LC202607010001',
         total_amount: '10.00',
@@ -286,6 +316,7 @@ describe('createAlipayProvider', () => {
         signType: 'RSA2',
       });
       expect(exec).toHaveBeenCalledWith('alipay.trade.precreate', {
+        notify_url: 'https://env.example.com/api/payments/alipay/notify',
         bizContent: {
           out_trade_no: 'LC202605260007',
           total_amount: '10.00',

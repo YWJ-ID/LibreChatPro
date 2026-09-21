@@ -141,6 +141,7 @@
   - Configure Proxy, Reverse Proxy, Docker, & many Deployment options  
   - Use [S3 with CloudFront](https://www.librechat.ai/docs/configuration/cdn/cloudfront) for stable media links, edge delivery, signed cookies, and secured downloads
   - Use completely local or deploy on the cloud
+  - Test SMTP mail settings with `node config/test-email.js <recipient-email>`
 
 - 📖 **Open-Source & Community**:  
   - Completely Open-Source & Built in Public  
