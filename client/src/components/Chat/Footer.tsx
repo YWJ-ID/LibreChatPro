@@ -1,9 +1,15 @@
 import React, { useEffect, memo } from 'react';
 import TagManager from 'react-gtm-module';
 import ReactMarkdown from 'react-markdown';
-import { Constants } from 'librechat-data-provider';
 import { useGetStartupConfig } from '~/data-provider';
 import { useLocalize } from '~/hooks';
+
+const COPYRIGHT = '© 2026 星河映颜（广州）科技有限公司 版权所有';
+const ICP_NUMBER = '粤ICP备2026104863号';
+const ICP_URL = 'https://beian.miit.gov.cn/';
+const POLICE_NUMBER = '粤公网安备44011502001757号';
+const POLICE_URL = 'https://beian.mps.gov.cn/#/query/webSearch?code=44011502001757';
+const POLICE_ICON = 'https://beian.mps.gov.cn/img/logo01.dd7ff50e.png';
 
 function Footer({ className }: { className?: string }) {
   const { data: config } = useGetStartupConfig();
@@ -24,15 +30,6 @@ function Footer({ className }: { className?: string }) {
     </a>
   );
 
-  const mainContentParts = (
-    typeof config?.customFooter === 'string'
-      ? config.customFooter
-      : '[智造通 ' +
-        Constants.VERSION +
-        '] - ' +
-        localize('com_ui_latest_footer')
-  ).split('|');
-
   useEffect(() => {
     if (config?.analyticsGtmId != null && typeof window.google_tag_manager === 'undefined') {
       const tagManagerArgs = {
@@ -42,30 +39,58 @@ function Footer({ className }: { className?: string }) {
     }
   }, [config?.analyticsGtmId]);
 
-  const mainContentRender = mainContentParts.map((text, index) => (
-    <React.Fragment key={`main-content-part-${index}`}>
-      <ReactMarkdown
-        components={{
-          a: ({ node: _n, href, children, ...otherProps }) => {
-            return (
-              <a
-                className="text-text-secondary underline"
-                href={href}
-                rel="noreferrer"
-                {...otherProps}
-              >
-                {children}
-              </a>
-            );
-          },
+  const customFooter = config?.customFooter;
 
-          p: ({ node: _n, ...props }) => <span {...props} />,
-        }}
-      >
-        {text.trim()}
-      </ReactMarkdown>
-    </React.Fragment>
-  ));
+  const mainContentRender =
+    typeof customFooter === 'string' && customFooter.trim().length > 0
+      ? customFooter.split('|').map((text, index) => (
+          <React.Fragment key={`main-content-part-${index}`}>
+            <ReactMarkdown
+              components={{
+                a: ({ node: _n, href, children, ...otherProps }) => {
+                  return (
+                    <a
+                      className="text-text-secondary underline"
+                      href={href}
+                      rel="noreferrer"
+                      {...otherProps}
+                    >
+                      {children}
+                    </a>
+                  );
+                },
+
+                p: ({ node: _n, ...props }) => <span {...props} />,
+              }}
+            >
+              {text.trim()}
+            </ReactMarkdown>
+          </React.Fragment>
+        ))
+      : [
+          <span key="copyright" className="text-text-secondary">
+            {COPYRIGHT}
+          </span>,
+          <a
+            key="icp"
+            className="text-text-secondary hover:underline"
+            href={ICP_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {ICP_NUMBER}
+          </a>,
+          <a
+            key="police-record"
+            className="inline-flex items-center gap-1 text-text-secondary hover:underline"
+            href={POLICE_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <img src={POLICE_ICON} alt="公网安备" className="h-3.5 w-3.5" />
+            {POLICE_NUMBER}
+          </a>,
+        ];
 
   const footerElements = [...mainContentRender, privacyPolicyRender, termsOfServiceRender].filter(
     Boolean,
