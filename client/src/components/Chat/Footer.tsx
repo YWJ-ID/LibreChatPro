@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { useGetStartupConfig } from '~/data-provider';
 import { useLocalize } from '~/hooks';
 
-const COPYRIGHT = '© 2026 星河映颜（广州）科技有限公司 版权所有';
+const COPYRIGHT = 'Copyright © 2026 星河映颜（广州）科技有限公司 All Rights Reserved.';
 const ICP_NUMBER = '粤ICP备2026104863号';
 const ICP_URL = 'https://beian.miit.gov.cn/';
 const POLICE_NUMBER = '粤公网安备44011502001757号';

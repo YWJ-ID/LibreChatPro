@@ -84,7 +84,7 @@ export default defineConfig(({ command }) => ({
         ],
         globIgnores: ['images/**/*', '**/*.map', 'index.html'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallbackDenylist: [/^\/oauth/, /^\/api/],
+        navigateFallbackDenylist: [/^\/oauth/, /^\/api/, /^\/privacy\.html$/, /^\/terms\.html$/],
       },
       includeAssets: [],
       manifest: {
