@@ -38,12 +38,13 @@ describe('createAlipayProvider', () => {
     });
   });
 
-  it('throws with Alipay error details when precreate fails', async () => {
+  // 当面付未开通时 precreate 返回业务错误码，保持旧行为：不抛错并返回空二维码
+  it('returns an empty qrCode without throwing when precreate fails', async () => {
     const exec = jest.fn(async () => ({
       code: '40004',
       msg: 'Business Failed',
-      sub_code: 'ACQ.TRADE_NOT_EXIST',
-      sub_msg: 'the trade does not exist',
+      sub_code: 'ACQ.ACCESS_FORBIDDEN',
+      sub_msg: 'ACCESS_FORBIDDEN',
     }));
     const provider = createAlipayProvider({
       appId: 'app-id',
@@ -61,9 +62,13 @@ describe('createAlipayProvider', () => {
       },
     });
 
-    await expect(
-      provider.createQRCodePayment({ outTradeNo: 'LC202605260008', amountCny: '10.00', subject: 'test' }),
-    ).rejects.toThrow(/code=40004[\s\S]*ACQ.TRADE_NOT_EXIST/);
+    const result = await provider.createQRCodePayment({
+      outTradeNo: 'LC202605260008',
+      amountCny: '10.00',
+      subject: 'test',
+    });
+
+    expect(result).toEqual({ qrCode: '' });
   });
 
   it('falls back to camelCase when qr_code is not returned', async () => {

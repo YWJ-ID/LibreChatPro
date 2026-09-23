@@ -93,15 +93,7 @@ export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvi
         },
       });
 
-      const qrCode = response.qr_code ?? response.qrCode ?? '';
-      if ((response.code && response.code !== '10000') || !qrCode) {
-        throw new Error(
-          `Alipay precreate failed: code=${response.code} msg=${response.msg} ` +
-            `subCode=${response.sub_code} subMsg=${response.sub_msg} response=${JSON.stringify(response)}`,
-        );
-      }
-
-      return { qrCode };
+      return { qrCode: response.qr_code ?? response.qrCode ?? '' };
     },
     async verifyNotify(payload) {
       if (!config.client.checkNotifySign(payload)) {
