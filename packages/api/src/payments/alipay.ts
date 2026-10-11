@@ -5,21 +5,25 @@ import type { AlipaySdkCommonResult, AlipaySdkConfig } from 'alipay-sdk';
 import type { AppConfig } from '@librechat/data-schemas';
 import type { PaymentProvider } from './providers';
 
-type AlipayQueryResult = Partial<Pick<AlipaySdkCommonResult, 'code' | 'msg' | 'sub_code' | 'sub_msg'>> & {
+type AlipayQueryResult = Partial<
+  Pick<AlipaySdkCommonResult, 'code' | 'msg' | 'sub_code' | 'sub_msg'>
+> & {
   trade_no?: string;
   total_amount?: string;
   trade_status?: string;
   tradeNo?: string;
   totalAmount?: string;
   tradeStatus?: string;
-  qr_code?: string;
-  qrCode?: string;
 };
 
 type AlipayNotifyPayload = Record<string, string>;
 
 type AlipayClient = {
-  pageExecute(method: string, httpMethod: 'POST', params: Record<string, unknown>): string | Promise<string>;
+  pageExecute(
+    method: string,
+    httpMethod: 'GET' | 'POST',
+    params: Record<string, unknown>,
+  ): string | Promise<string>;
   checkNotifySign(payload: AlipayNotifyPayload): boolean;
   exec(method: string, params: Record<string, unknown>): Promise<AlipayQueryResult>;
 };
@@ -82,18 +86,21 @@ function getConfiguredAlipay(appConfig?: AppConfig): RequiredAlipayConfig | null
 export function createAlipayProvider(config: AlipayProviderConfig): PaymentProvider {
   return {
     name: 'alipay',
-    async createQRCodePayment(input) {
-      const response = await config.client.exec('alipay.trade.precreate', {
-        notify_url: config.notifyUrl,
+    async createPaymentForm(input) {
+      const paymentForm = await config.client.pageExecute('alipay.trade.page.pay', 'POST', {
+        returnUrl: config.returnUrl,
+        notifyUrl: config.notifyUrl,
         bizContent: {
           out_trade_no: input.outTradeNo,
           total_amount: input.amountCny,
           subject: input.subject,
-          product_code: 'FACE_TO_FACE_PAYMENT',
+          product_code: 'FAST_INSTANT_TRADE_PAY',
+          qr_pay_mode: '4',
+          qrcode_width: '280',
         },
       });
 
-      return { qrCode: response.qr_code ?? response.qrCode ?? '' };
+      return { paymentForm };
     },
     async verifyNotify(payload) {
       if (!config.client.checkNotifySign(payload)) {
@@ -143,7 +150,8 @@ export function createAlipayProviderFromConfig(
   }
 
   const readFile = deps.readFile ?? readFileSync;
-  const createClient = deps.createClient ?? ((config: AlipaySdkConfig): AlipayClient => new AlipaySdk(config));
+  const createClient =
+    deps.createClient ?? ((config: AlipaySdkConfig): AlipayClient => new AlipaySdk(config));
   const privateKey = readFile(alipay.privateKeyPath, 'utf8');
 
   return createAlipayProvider({

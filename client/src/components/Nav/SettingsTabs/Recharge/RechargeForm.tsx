@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToastContext } from '@librechat/client';
 import { QueryKeys } from 'librechat-data-provider';
 import { useCreatePaymentOrder, useGetPaymentOrder, useGetPaymentPackages } from '~/data-provider';
 import { useLocalize } from '~/hooks';
@@ -11,13 +12,16 @@ const pendingPaymentOrderKey = 'librechat.pendingPaymentOrderId';
 function RechargeForm() {
   const localize = useLocalize();
   const queryClient = useQueryClient();
+  const { showToast } = useToastContext();
   const [amountCny, setAmountCny] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState(() => localStorage.getItem(pendingPaymentOrderKey) ?? '');
+  const [pendingOrderId, setPendingOrderId] = useState(
+    () => localStorage.getItem(pendingPaymentOrderKey) ?? '',
+  );
   const [activeQrPayment, setActiveQrPayment] = useState<{
     orderId: string;
     outTradeNo: string;
-    qrCode: string;
+    paymentForm: string;
     amountCny: number;
     credits: number;
   } | null>(null);
@@ -32,6 +36,7 @@ function RechargeForm() {
   const termsUrl = packagesQuery.data?.termsUrl;
   const privacyUrl = packagesQuery.data?.privacyUrl;
   const hasMerchantInfo = Boolean(merchantName || merchantContact);
+  const requiresTerms = Boolean(termsUrl || privacyUrl);
 
   useEffect(() => {
     if (!pendingOrderId || paymentOrderQuery.data?.status !== 'credited') {
@@ -52,27 +57,36 @@ function RechargeForm() {
 
   const placeOrder = useCallback(
     async (input: { packageId?: string; amountCny?: string }) => {
-      const result = await createOrder.mutateAsync(input);
-      localStorage.setItem(pendingPaymentOrderKey, result.orderId);
-      setPendingOrderId(result.orderId);
+      try {
+        const result = await createOrder.mutateAsync(input);
+        localStorage.setItem(pendingPaymentOrderKey, result.orderId);
+        setPendingOrderId(result.orderId);
 
-      const pkg = input.packageId
-        ? packagesQuery.data?.packages.find((p) => p.id === input.packageId)
-        : null;
-      const amount = pkg ? Number(pkg.amountCny) : Number(input.amountCny ?? 0);
-      const credits = pkg
-        ? pkg.credits
-        : Math.round(Number(input.amountCny ?? 0) * (packagesQuery.data?.custom.creditsPerCny ?? 0));
+        const pkg = input.packageId
+          ? packagesQuery.data?.packages.find((p) => p.id === input.packageId)
+          : null;
+        const amount = pkg ? Number(pkg.amountCny) : Number(input.amountCny ?? 0);
+        const credits = pkg
+          ? pkg.credits
+          : Math.round(
+              Number(input.amountCny ?? 0) * (packagesQuery.data?.custom.creditsPerCny ?? 0),
+            );
 
-      setActiveQrPayment({
-        orderId: result.orderId,
-        outTradeNo: result.outTradeNo,
-        qrCode: result.qrCode,
-        amountCny: amount,
-        credits,
-      });
+        setActiveQrPayment({
+          orderId: result.orderId,
+          outTradeNo: result.outTradeNo,
+          paymentForm: result.paymentForm,
+          amountCny: amount,
+          credits,
+        });
+      } catch (error) {
+        showToast({
+          message: (error as Error)?.message ?? localize('com_ui_error'),
+          status: 'error',
+        });
+      }
     },
-    [createOrder, packagesQuery.data],
+    [createOrder, packagesQuery.data, showToast, localize],
   );
 
   if (packagesQuery.isLoading) {
@@ -82,7 +96,7 @@ function RechargeForm() {
   return (
     <div className="relative space-y-3">
       {createOrder.isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-surface-primary/60">
+        <div className="bg-surface-primary/60 absolute inset-0 z-10 flex items-center justify-center rounded-lg">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-green-500 border-t-transparent" />
         </div>
       )}
@@ -90,7 +104,9 @@ function RechargeForm() {
         <div className="rounded-md border border-border-medium bg-surface-tertiary px-3 py-2 text-xs text-text-secondary">
           <p>{localize('com_nav_balance_recharge_description')}</p>
           {merchantName && (
-            <p className="mt-1">{localize('com_nav_balance_recharge_provider', { merchantName })}</p>
+            <p className="mt-1">
+              {localize('com_nav_balance_recharge_provider', { merchantName })}
+            </p>
           )}
           {merchantContact && <p className="mt-0.5">{merchantContact}</p>}
           <div className="mt-2 flex items-center gap-1.5 border-t border-border-light pt-2 text-text-secondary">
@@ -107,7 +123,7 @@ function RechargeForm() {
             key={item.id}
             type="button"
             onClick={() => placeOrder({ packageId: item.id })}
-            disabled={createOrder.isLoading}
+            disabled={createOrder.isLoading || (requiresTerms && !termsAccepted)}
           >
             <span className="block font-medium">¥{item.amountCny}</span>
             <span className="text-xs text-text-secondary">
@@ -140,13 +156,23 @@ function RechargeForm() {
           <span>
             {localize('com_nav_balance_recharge_terms')}
             {termsUrl && (
-              <a href={termsUrl} target="_blank" rel="noopener noreferrer" className="mx-1 text-green-500 hover:underline">
+              <a
+                href={termsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mx-1 text-green-500 hover:underline"
+              >
                 {localize('com_nav_balance_recharge_terms_link')}
               </a>
             )}
             {termsUrl && privacyUrl && <span>&</span>}
             {privacyUrl && (
-              <a href={privacyUrl} target="_blank" rel="noopener noreferrer" className="ml-1 text-green-500 hover:underline">
+              <a
+                href={privacyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 text-green-500 hover:underline"
+              >
                 {localize('com_nav_balance_recharge_privacy_link')}
               </a>
             )}
@@ -157,7 +183,7 @@ function RechargeForm() {
       <button
         className="rounded-lg bg-green-600 px-3 py-2 text-white disabled:opacity-60"
         type="button"
-        disabled={!amountCny || createOrder.isLoading || (Boolean(termsUrl || privacyUrl) && !termsAccepted)}
+        disabled={!amountCny || createOrder.isLoading || (requiresTerms && !termsAccepted)}
         onClick={() => placeOrder({ amountCny })}
       >
         {localize('com_nav_balance_recharge_submit')}
@@ -167,7 +193,7 @@ function RechargeForm() {
         <QRCodeDialog
           orderId={activeQrPayment.orderId}
           outTradeNo={activeQrPayment.outTradeNo}
-          qrCode={activeQrPayment.qrCode}
+          paymentForm={activeQrPayment.paymentForm}
           amountCny={activeQrPayment.amountCny}
           credits={activeQrPayment.credits}
           merchantName={merchantName}

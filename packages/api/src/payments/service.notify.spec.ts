@@ -67,7 +67,7 @@ describe('createPaymentService payment confirmation', () => {
     const { methods, transactions, updates } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({
         isValid: true,
         outTradeNo: 'LC202605260004',
@@ -118,7 +118,7 @@ describe('createPaymentService payment confirmation', () => {
     const { methods, transactions, updates } = createMethods(createOrder({ status: 'closed' }));
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({
         isValid: true,
         outTradeNo: 'LC202605260004',
@@ -150,7 +150,7 @@ describe('createPaymentService payment confirmation', () => {
     const { methods, transactions } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({ config, provider, methods });
@@ -166,7 +166,7 @@ describe('createPaymentService payment confirmation', () => {
     const { methods, transactions, updates } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createPaymentForm: jest.fn(async () => '<form></form>'),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,
@@ -178,7 +178,10 @@ describe('createPaymentService payment confirmation', () => {
     };
     const service = createPaymentService({ config, provider, methods });
 
-    const result = await service.queryOrderAndCreditIfNeeded({ orderId: 'order1', userId: 'user1' });
+    const result = await service.queryOrderAndCreditIfNeeded({
+      orderId: 'order1',
+      userId: 'user1',
+    });
 
     expect(result?.status).toBe('credited');
     expect(provider.queryOrder).toHaveBeenCalledWith({ outTradeNo: 'LC202605260004' });

@@ -777,7 +777,7 @@ export type TCreatePaymentOrderRequest =
 export type TCreatePaymentOrderResponse = {
   orderId: string;
   outTradeNo: string;
-  qrCode: string;
+  paymentForm: string;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -47,7 +47,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const getProvider = jest.fn(() => provider);
@@ -62,7 +62,7 @@ describe('createPaymentHandlers', () => {
     await handlers.createOrder(req, res);
 
     expect(getProvider).toHaveBeenCalledWith(appConfig);
-    expect(provider.createQRCodePayment).toHaveBeenCalledWith({
+    expect(provider.createPaymentForm).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC/),
       amountCny: '10.00',
       subject: 'LibreChat AI 对话积分充值 - 1000000积分',
@@ -71,7 +71,7 @@ describe('createPaymentHandlers', () => {
     expect(res.json).toHaveBeenCalledWith({
       orderId: 'order1',
       outTradeNo: expect.stringMatching(/^LC/),
-      qrCode: 'https://qr.alipay.com/test',
+      paymentForm: '<form></form>',
     });
     expect(methods.listPaymentOrders).not.toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({ isValid: false })),
     };
@@ -210,7 +210,7 @@ describe('createPaymentHandlers', () => {
     } as AppConfig;
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,

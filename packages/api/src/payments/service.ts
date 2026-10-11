@@ -1,5 +1,12 @@
-import type { IPaymentOrder, PaymentOrderMethods, TransactionMethods } from '@librechat/data-schemas';
-import type { TCreatePaymentOrderRequest, TCreatePaymentOrderResponse } from 'librechat-data-provider';
+import type {
+  IPaymentOrder,
+  PaymentOrderMethods,
+  TransactionMethods,
+} from '@librechat/data-schemas';
+import type {
+  TCreatePaymentOrderRequest,
+  TCreatePaymentOrderResponse,
+} from 'librechat-data-provider';
 import { createCreditPaymentOrder } from './credits';
 import { createOutTradeNo, resolveRecharge } from './orders';
 import type { PaymentProvider, VerifiedPaymentNotification } from './providers';
@@ -47,7 +54,10 @@ const EXPIRED_PENDING_ORDER_RECONCILE_LIMIT = 20;
 export function createPaymentService(deps: PaymentServiceDeps) {
   const creditPaymentOrder = createCreditPaymentOrder(deps.methods);
 
-  function isConfirmedPayment(order: ConfirmPaymentInput['order'], notification: VerifiedPaymentNotification) {
+  function isConfirmedPayment(
+    order: ConfirmPaymentInput['order'],
+    notification: VerifiedPaymentNotification,
+  ) {
     return (
       notification.isValid &&
       notification.outTradeNo === order.outTradeNo &&
@@ -108,7 +118,11 @@ export function createPaymentService(deps: PaymentServiceDeps) {
           order,
           notification,
           source: 'query',
-          filter: { _id: order._id, user: String(order.user), status: { $in: ['pending', 'paid', 'closed'] } },
+          filter: {
+            _id: order._id,
+            user: String(order.user),
+            status: { $in: ['pending', 'paid', 'closed'] },
+          },
         });
 
         if (creditedOrder) {
@@ -165,13 +179,13 @@ export function createPaymentService(deps: PaymentServiceDeps) {
       packageId: 'packageId' in recharge ? recharge.packageId : undefined,
       customAmountCny: 'customAmountCny' in recharge ? recharge.customAmountCny : undefined,
     });
-    const qrCodeResult = await deps.provider.createQRCodePayment({
+    const { paymentForm } = await deps.provider.createPaymentForm({
       outTradeNo,
       amountCny: recharge.amountCny.toFixed(2),
       subject: `LibreChat AI 对话积分充值 - ${recharge.credits}积分`,
     });
 
-    return { orderId: String(order._id), outTradeNo, qrCode: qrCodeResult.qrCode };
+    return { orderId: String(order._id), outTradeNo, paymentForm };
   }
 
   async function handleNotify(payload: Record<string, string>) {
@@ -189,7 +203,10 @@ export function createPaymentService(deps: PaymentServiceDeps) {
       order,
       notification,
       source: 'notify',
-      filter: { outTradeNo: notification.outTradeNo, status: { $in: ['pending', 'paid', 'closed'] } },
+      filter: {
+        outTradeNo: notification.outTradeNo,
+        status: { $in: ['pending', 'paid', 'closed'] },
+      },
     });
 
     return creditedOrder || order.status === 'credited' ? 'success' : 'failure';
@@ -234,5 +251,11 @@ export function createPaymentService(deps: PaymentServiceDeps) {
     return closed ?? order;
   }
 
-  return { createOrder, handleNotify, queryOrderAndCreditIfNeeded, reconcileExpiredPendingOrdersForUser, cancelOrder };
+  return {
+    createOrder,
+    handleNotify,
+    queryOrderAndCreditIfNeeded,
+    reconcileExpiredPendingOrdersForUser,
+    cancelOrder,
+  };
 }

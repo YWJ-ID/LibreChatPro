@@ -12,6 +12,10 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
 }));
 
+jest.mock('@librechat/client', () => ({
+  useToastContext: () => ({ showToast: jest.fn() }),
+}));
+
 jest.mock('~/hooks', () => ({
   useLocalize: () => (key) => key,
 }));
@@ -35,7 +39,11 @@ describe('Recharge', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    mockMutateAsync.mockResolvedValue({ orderId: 'order1', outTradeNo: 'LC202605260007', qrCode: 'https://qr.alipay.com/test' });
+    mockMutateAsync.mockResolvedValue({
+      orderId: 'order1',
+      outTradeNo: 'LC202605260007',
+      paymentForm: '<form></form>',
+    });
     mockUseGetPaymentOrder.mockReturnValue({ data: undefined });
   });
 
@@ -48,13 +56,23 @@ describe('Recharge', () => {
     expect(screen.getByLabelText('com_nav_balance_custom_amount')).toBeInTheDocument();
   });
 
+  it('submits a custom amount order', async () => {
+    render(<Recharge />);
+    await userEvent.type(screen.getByLabelText('com_nav_balance_custom_amount'), '20');
+    await userEvent.click(screen.getByText('com_nav_balance_recharge_submit'));
+
+    await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledWith({ amountCny: '20' }));
+  });
+
   it('stores submitted order and refreshes balance when credited', async () => {
     mockUseGetPaymentOrder.mockReturnValue({ data: { status: 'credited' } });
 
     render(<Recharge />);
     await userEvent.click(screen.getByText('¥10.00'));
 
-    await waitFor(() => expect(mockUseGetPaymentOrder).toHaveBeenCalledWith('order1', expect.any(Object)));
+    await waitFor(() =>
+      expect(mockUseGetPaymentOrder).toHaveBeenCalledWith('order1', expect.any(Object)),
+    );
     await waitFor(() => expect(mockInvalidateQueries).toHaveBeenCalledWith(['balance']));
     expect(localStorage.getItem('librechat.pendingPaymentOrderId')).toBeNull();
   });

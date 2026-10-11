@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { QRCodeSVG } from 'qrcode.react';
 import { useToastContext } from '@librechat/client';
 import { useGetPaymentOrder, useCancelPaymentOrder } from '~/data-provider';
 import { useLocalize } from '~/hooks';
@@ -9,7 +8,7 @@ import AlipayIcon from './AlipayIcon';
 type QRCodeDialogProps = {
   orderId: string;
   outTradeNo?: string;
-  qrCode: string;
+  paymentForm: string;
   amountCny: number;
   credits: number;
   merchantName?: string;
@@ -59,7 +58,7 @@ function SuccessAnimation() {
 function QRCodeDialog({
   orderId,
   outTradeNo,
-  qrCode,
+  paymentForm,
   amountCny,
   credits,
   merchantName,
@@ -142,6 +141,13 @@ function QRCodeDialog({
     }
   }, [outTradeNoValue, showToast, localize]);
 
+  const handleOpenPayment = useCallback(() => {
+    const blob = new Blob([paymentForm], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }, [paymentForm]);
+
   const statusKey =
     status === 'closed' || status === 'failed'
       ? 'com_nav_balance_qrcode_status_expired'
@@ -169,7 +175,11 @@ function QRCodeDialog({
   }, [isPending, isExpired, handleCancel, onClose]);
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+      role="dialog"
+      aria-modal="true"
+    >
       <div
         className={`relative w-full max-w-sm rounded-lg bg-surface-primary p-6 shadow-xl transition-all duration-500 ${
           isSuccess ? 'scale-105' : ''
@@ -205,11 +215,16 @@ function QRCodeDialog({
             <SuccessAnimation />
           ) : (
             <div
-              className={`rounded-lg border border-border-medium bg-white p-3 transition-all duration-500 ${
+              className={`overflow-hidden rounded-lg border border-border-medium bg-white transition-all duration-500 ${
                 isPaid ? 'scale-75 opacity-50' : isInactive ? 'opacity-30' : 'scale-100 opacity-100'
               }`}
             >
-              <QRCodeSVG value={qrCode} size={200} />
+              <iframe
+                title="alipay-payment"
+                srcDoc={paymentForm}
+                scrolling="no"
+                className="h-[320px] w-[280px] border-0 bg-white"
+              />
             </div>
           )}
         </div>
@@ -221,10 +236,14 @@ function QRCodeDialog({
           }`}
         >
           {!isPaid && !isSuccess && !isInactive && (
-            <>
+            <button
+              type="button"
+              onClick={handleOpenPayment}
+              className="flex items-center gap-1.5 text-green-500 hover:underline"
+            >
               <AlipayIcon size={16} />
               <span>{localize('com_nav_balance_qrcode_hint')}</span>
-            </>
+            </button>
           )}
           {isPaid && !isSuccess && (
             <span className="animate-pulse">{localize('com_nav_balance_qrcode_status_paid')}</span>
@@ -298,9 +317,7 @@ function QRCodeDialog({
                   : 'bg-surface-tertiary text-text-secondary'
               }`}
             >
-              {isInactive
-                ? localize('com_nav_balance_qrcode_status_expired')
-                : localize(statusKey)}
+              {isInactive ? localize('com_nav_balance_qrcode_status_expired') : localize(statusKey)}
             </span>
             {isPending && !isInactive && countdownLabel && (
               <div className="mt-2 text-xs text-text-secondary">

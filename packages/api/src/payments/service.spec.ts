@@ -39,11 +39,13 @@ describe('createPaymentService', () => {
     custom: { minCny: '1.00', maxCny: '5000.00', creditsPerCny: 100000 },
   };
 
-  it('creates fixed package order with provider payment form', async () => {
+  it('creates fixed package order with provider payment url', async () => {
     const { createdOrders, methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async ({ outTradeNo }) => ({ qrCode: `https://qr.alipay.com/${outTradeNo}` })),
+      createPaymentForm: jest.fn(async ({ outTradeNo }) => ({
+        paymentForm: `<form>${outTradeNo}</form>`,
+      })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({ config, provider, methods });
@@ -58,7 +60,7 @@ describe('createPaymentService', () => {
       status: 'pending',
       packageId: 'cny_10',
     });
-    expect(provider.createQRCodePayment).toHaveBeenCalledWith({
+    expect(provider.createPaymentForm).toHaveBeenCalledWith({
       outTradeNo: expect.stringMatching(/^LC\d{14}[A-Z0-9]{6}$/),
       amountCny: '10.00',
       subject: 'LibreChat AI 对话积分充值 - 1000000积分',
@@ -66,7 +68,7 @@ describe('createPaymentService', () => {
     expect(result).toEqual({
       orderId: 'order1',
       outTradeNo: createdOrders[0].outTradeNo,
-      qrCode: expect.stringContaining('https://qr.alipay.com/'),
+      paymentForm: expect.stringContaining('<form>'),
     });
   });
 
@@ -74,7 +76,9 @@ describe('createPaymentService', () => {
     const { createdOrders, methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async ({ amountCny }) => ({ qrCode: `https://qr.alipay.com/${amountCny}` })),
+      createPaymentForm: jest.fn(async ({ amountCny }) => ({
+        paymentForm: `<form>${amountCny}</form>`,
+      })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({ config, provider, methods });
@@ -89,14 +93,14 @@ describe('createPaymentService', () => {
       status: 'pending',
       customAmountCny: 12.34,
     });
-    expect(result.qrCode).toContain('12.34');
+    expect(result.paymentForm).toContain('12.34');
   });
 
   it('rejects order creation when payments are disabled', async () => {
     const { methods } = createMethods();
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
     };
     const service = createPaymentService({
@@ -126,10 +130,13 @@ describe('createPaymentService', () => {
       createdAt: new Date('2026-07-01T10:00:00.000Z'),
       updatedAt: new Date('2026-07-01T10:00:00.000Z'),
     } as Awaited<ReturnType<PaymentOrderMethods['findPaymentOrderById']>>;
-    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({ orders: [expiredOrder], total: 1 });
+    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({
+      orders: [expiredOrder],
+      total: 1,
+    });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,
@@ -184,7 +191,10 @@ describe('createPaymentService', () => {
       createdAt: new Date('2026-07-01T10:00:00.000Z'),
       updatedAt: new Date('2026-07-01T10:00:00.000Z'),
     } as Awaited<ReturnType<PaymentOrderMethods['findPaymentOrderById']>>;
-    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({ orders: [expiredOrder], total: 1 });
+    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({
+      orders: [expiredOrder],
+      total: 1,
+    });
     (methods.updatePaymentOrder as jest.Mock).mockImplementation(async (_filter, update) => ({
       ...expiredOrder,
       ...update,
@@ -197,7 +207,7 @@ describe('createPaymentService', () => {
     });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => ({
         isValid: true,
@@ -251,10 +261,13 @@ describe('createPaymentService', () => {
       createdAt: new Date('2026-07-01T10:00:00.000Z'),
       updatedAt: new Date('2026-07-01T10:00:00.000Z'),
     } as Awaited<ReturnType<PaymentOrderMethods['findPaymentOrderById']>>;
-    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({ orders: [expiredOrder], total: 1 });
+    (methods.listPaymentOrders as jest.Mock).mockResolvedValue({
+      orders: [expiredOrder],
+      total: 1,
+    });
     const provider: PaymentProvider = {
       name: 'alipay',
-      createQRCodePayment: jest.fn(async () => ({ qrCode: 'https://qr.alipay.com/test' })),
+      createPaymentForm: jest.fn(async () => ({ paymentForm: '<form></form>' })),
       verifyNotify: jest.fn(async () => ({ isValid: false })),
       queryOrder: jest.fn(async () => {
         throw new Error('Alipay unavailable');
