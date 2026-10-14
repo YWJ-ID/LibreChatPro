@@ -31,6 +31,10 @@ function RechargeForm() {
   });
   const createOrder = useCreatePaymentOrder();
 
+  const customConfig = packagesQuery.data?.custom;
+  const minCny = customConfig ? Number(customConfig.minCny) : undefined;
+  const maxCny = customConfig ? Number(customConfig.maxCny) : undefined;
+
   const merchantName = packagesQuery.data?.merchantName;
   const merchantContact = packagesQuery.data?.merchantContact;
   const termsUrl = packagesQuery.data?.termsUrl;
@@ -89,6 +93,37 @@ function RechargeForm() {
     [createOrder, packagesQuery.data, showToast, localize],
   );
 
+  const validateCustomAmount = useCallback(() => {
+    const value = Number(amountCny);
+    if (!amountCny.trim() || !Number.isFinite(value)) {
+      showToast({ message: localize('com_nav_balance_custom_amount_invalid'), status: 'error' });
+      return null;
+    }
+    if (minCny !== undefined && value < minCny) {
+      showToast({
+        message: localize('com_nav_balance_custom_amount_too_low', { min: minCny.toFixed(2) }),
+        status: 'error',
+      });
+      return null;
+    }
+    if (maxCny !== undefined && value > maxCny) {
+      showToast({
+        message: localize('com_nav_balance_custom_amount_too_high', { max: maxCny.toFixed(2) }),
+        status: 'error',
+      });
+      return null;
+    }
+    return value;
+  }, [amountCny, minCny, maxCny, showToast, localize]);
+
+  const handleCustomSubmit = useCallback(() => {
+    const value = validateCustomAmount();
+    if (value === null) {
+      return;
+    }
+    void placeOrder({ amountCny });
+  }, [validateCustomAmount, placeOrder, amountCny]);
+
   if (packagesQuery.isLoading) {
     return <div>{localize('com_ui_loading')}</div>;
   }
@@ -133,17 +168,29 @@ function RechargeForm() {
         ))}
       </div>
 
-      <label className="flex flex-col gap-1">
-        <span>{localize('com_nav_balance_custom_amount')}</span>
-        <input
-          className="rounded border border-border-medium bg-transparent px-3 py-2"
-          min={packagesQuery.data?.custom.minCny}
-          max={packagesQuery.data?.custom.maxCny}
-          value={amountCny}
-          inputMode="decimal"
-          onChange={(event) => setAmountCny(event.target.value)}
-        />
-      </label>
+      <div className="flex flex-col gap-1">
+        <label className="flex flex-col gap-1">
+          <span>{localize('com_nav_balance_custom_amount')}</span>
+          <input
+            className="rounded border border-border-medium bg-transparent px-3 py-2"
+            type="number"
+            step="0.01"
+            min={packagesQuery.data?.custom.minCny}
+            max={packagesQuery.data?.custom.maxCny}
+            value={amountCny}
+            inputMode="decimal"
+            onChange={(event) => setAmountCny(event.target.value)}
+          />
+        </label>
+        {(minCny !== undefined || maxCny !== undefined) && (
+          <span className="text-xs text-text-secondary">
+            {localize('com_nav_balance_custom_amount_range', {
+              min: minCny !== undefined ? minCny.toFixed(2) : '',
+              max: maxCny !== undefined ? maxCny.toFixed(2) : '',
+            })}
+          </span>
+        )}
+      </div>
 
       {(termsUrl || privacyUrl) && (
         <label className="flex items-center gap-2 text-xs text-text-secondary">
@@ -184,7 +231,7 @@ function RechargeForm() {
         className="rounded-lg bg-green-600 px-3 py-2 text-white disabled:opacity-60"
         type="button"
         disabled={!amountCny || createOrder.isLoading || (requiresTerms && !termsAccepted)}
-        onClick={() => placeOrder({ amountCny })}
+        onClick={handleCustomSubmit}
       >
         {localize('com_nav_balance_recharge_submit')}
       </button>
